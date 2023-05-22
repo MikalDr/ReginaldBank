@@ -1,1 +1,1 @@
-20,Gems,50g;
+20,Gems,50g;1,test,0g;1,gladiator sword of nils,0g;

@@ -1,5 +1,6 @@
 import math
-
+import random
+import datetime
 
 class Funds:
     def __init__(self, plat, gold, electrum, silver, copper):
@@ -13,7 +14,7 @@ class Funds:
         return f"{self.plat};{self.gold};{self.electrum};{self.silver};{self.copper}"
 
     def __str__(self):
-        return (f"Plat: {self.plat} \n Gold: {self.gold} \n Electrum: {self.electrum} \n Silver: {self.silver} \n Copper: {self.copper}")
+        return (f"Plat: {self.plat} \nGold: {self.gold} \nElectrum: {self.electrum} \nSilver: {self.silver} \nCopper: {self.copper}")
         return f"{self.plat};{self.gold};{self.electrum};{self.silver};{self.copper}"
     
     def update_fund(self, plat=0, gold=0, electrum=0, silver=0, copper=0):
@@ -55,14 +56,20 @@ class PartyStorage:
             if el == "":
                 continue
             quantity, item_name, cost = el.split(",")
-            storage[id] = [item_name, quantity, cost, int(quantity)*int(cost[:-1])]
+            if(cost == 0):
+                storage[id] = [item_name, quantity]
+            if(cost != 0):
+                storage[id] = [item_name, quantity, cost, int(quantity)*int(cost[:-1])]
             id += 1
         self.storage = storage
     def __str__(self):
         library = ""
         for item in self.storage.keys():
             print(item)
-            library += f"{self.storage[item][1]} | {self.storage[item][0]} ({self.storage[item][2]}) | Total value: {str(self.storage[item][3]) + self.storage[item][2][-1]}"
+            if((self.storage[item][3] != 0)):
+                library += f"{self.storage[item][1]} | {self.storage[item][0]} ({self.storage[item][2]}) | Total value: {str(self.storage[item][3]) + self.storage[item][2][-1]}\n"
+            else:
+                library += f"{self.storage[item][1]} | {self.storage[item][0]} \n"
         return library
     
     def value_of_items(self, currency) -> int:
@@ -82,33 +89,50 @@ class PartyStorage:
             case "c":
                 return amount
 
+call_names = set(["reginald","regi", "rabbit", "hare"])
 player_tags = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8705":"Halfdan", "9521":"Marxson", "8054": "Strange Godlike Being"}
-
+scorch_greetings = ["Please be careful today scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!", "Good Morning Scorch!"]
 def handle_response(username, message) -> str:
     partyfund = load_partyfund()
     upper_message = message.split()
-    p_message = message.lower()
-    
+    p_message = message.lower().split()
+    current_time = datetime.datetime.now().time().__str__().split(":")
+    print(current_time)
     tag = username.split("#")[1]
     name = player_tags.get(tag)
     
     partyfund = load_partyfund()
     storage = load_partystorage()
     
-    if p_message.split()[0] == "reginald" or p_message.split()[0] == "regi" or p_message.split()[0] == "rabbit" or p_message.split()[0] == "hare":
-        p_message = p_message.split()
-        context = f"Sure thing {name}! \n"
+    if p_message[0] in call_names:
+        # Daily greetings
+        if(len(p_message) == 1):
+            if(name == "Scorch"):
+                return f"{scorch_greetings[random.randint(0, len(scorch_greetings)-1)]}"
+            elif(int(current_time[0]) <= 12):
+                return f"Good morning {name}"
+            elif(int(current_time[0])  <= 15):
+                return f"Good afternoon {name}"
+            elif(int(current_time[0])  <= 23):
+                return f"Good evening {name}"
+            else:
+                return f"Good night {name}"
+        
+        if(name == "Scorch"):
+            context = f"Fine... Scorch"
+        else:
+            context = f"Sure thing {name}! \n"
         print(p_message)
         if(" ".join(p_message[1:]) == "check partyfund" or " ".join(p_message[1:]) == "check funds"):
-            return context + "Oh, let me check the logs.... We currently have! \n {0}\n\n Items \n {1}".format(partyfund, storage)
+            return context + "Oh, let me check the logs.... We currently have! ```{0}```\n Items ```{1}```".format(partyfund, storage)
         if(p_message[1] == "funds" and p_message[2] == "in"):
             return partyfund.fund_in_currency(p_message[3], storage.value_of_items(p_message[3]))
         if(p_message[1] == "withdraw"):
             ok = checkCurrency(partyfund, p_message[2:], negative=True)
             if(ok):
                 if(name == "me"):
-                    return context + "I have withdrawn {0} from the partyfund, we now have\n {1}".format(" ".join(upper_message[2:]), partyfund)
-                return context + "You have withdrawn {0} from the partyfund, we now have\n {1} \nItems \n {2}".format(" ".join(upper_message[2:]), partyfund, storage)
+                    return context + "I have withdrawn {0} from the partyfund, we now have\n## Partyfund \n {1}".format(" ".join(upper_message[2:]), partyfund)
+                return context + "You have withdrawn {0} from the partyfund, we now have\n## Partyfund \n {1} \nItems \n {2}".format(" ".join(upper_message[2:]), partyfund, storage)
             else:
                 return context + "I am not sure if we have {0} in the partyfund!".format(" ".join(upper_message[2:]))
         if(p_message[1] == "add"):
@@ -119,21 +143,21 @@ def handle_response(username, message) -> str:
                 if(ok):
                     partyfund = load_partyfund()
                     if(name == "me"):
-                        return context +"Good job {2}! \nI have contributed {0} to the partyfund, we now have:\n {1}".format(" ".join(upper_message[2:]), partyfund, name)
-                    return context +"Good job {2}! \nYou have contributed {0} to the partyfund, we now have:\n {1}".format(" ".join(upper_message[2:]), partyfund, name)
+                        return context +"Good job {2}! \nI have contributed {0} to the partyfund, we now have:\n## Partyfund \n {1}".format(" ".join(upper_message[2:]), partyfund, name)
+                    return context +"Good job {2}! \nYou have contributed {0} to the partyfund, we now have:\n## Partyfund \n {1}".format(" ".join(upper_message[2:]), partyfund, name)
                 else:
                     return context +"I may be a rabb.. Hare! But i am not adding {0} to the partyfund!".format(" ".join(upper_message[2:]))
-        return context +"Sorry, could you repeat that?"
     
-    if(p_message == "!help"):
-        return (f"Hi {name}! Among my repetoire of talents, i can assist you with: \n" + 
-                "+ reginald add x -> where x can be 100g or 100g 50c 4p \n"+
-                "- reginald add item x -> where x is the quantity item and cost, like 20 Gems 50g\n" +
-                "+ reginald withraw x -> where x is the amount of cash requested (for your money spending needs)\n" + 
-                "- reginald withraw item x -> where x is the quantity and item, like 1 Gem\n"
-                "+ reginald check funds -> i will check the funds i have hidden in Zeniths bag of holding (dont tell him)\n" + 
-                "+ reginald funds in x -> where x is either p, g, e, s, c and i will tell you our total fund in that currency.\n" +
-                "\n I may learn some new tricks later if you convince me to.") 
+        if(p_message[1] == "help"):
+            return (f"Hi {name}! Among my repetoire of talents, i can assist you with: ```" + 
+                    "- reginald add [Amount][Currency]\n"+
+                    "- reginald add item [Item Name], [Quantity], [Cost]\n" +
+                    "- reginald withraw [Amount][Currency]\n" + 
+                    "- reginald withraw item [Item Name], [Quantity]\n"
+                    "- reginald check funds \n" + 
+                    "- reginald funds in [Currency]```" +
+                    "I may learn some new tricks later if you convince me to.") 
+        return context +"Sorry, could you repeat that?"
     
 def checkCurrency(funds, strings, negative = False):
     amount = ""
