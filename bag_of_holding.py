@@ -19,7 +19,7 @@ class Item:
         
         if item_id is None:
             item_id = get_id()
-        self.item_id = self.item_id
+        self.item_id = item_id
         """Id of the item"""
         
     def get_csv_format(self) -> str:
@@ -39,7 +39,20 @@ class BagOfHolding:
             for line in f.readlines()[1::]:
                 item_id, item_name, amount, cost = line.split(SEPERATOR)
                 self.storage.add(Item(item_name, int(amount), int(cost), int(item_id)))
-       
+    
+    def add_n_items(self, item: Item, n: int) -> None:
+        """Adds n instances of the specified item to the bag
+
+        Args:
+            item (Item): Item
+            n (int): Instance count
+        """
+        for it in self.storage:
+            if it.item_id == item.item_id:
+                self.storage.remove(it)
+                it.amount += n
+                self.storage.add(it)
+                return
                 
     def save_items(self) -> None:
         """Saves all the items, should be called before exit"""

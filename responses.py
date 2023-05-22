@@ -6,6 +6,13 @@ player_tags = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8
 scorch_greetings = ["Please be careful today scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!", "Good Morning Scorch!"]
 
 
+BAG_COMMANDS = [
+    ("COMMAND <argument>", "Command setup"),
+    ("add <item name or item id> <optional amount, default 1> <optional cost in gp, default 0> <optional weight in lbs, default 0>", "Adds the specified item to the bag"),
+    ("remove <item name or item id> <optional amount, default 1>", "Removes an instance of the item from the bag of holding"),
+    ("check <item name or item id or all>", "Shows the status of the specified item")
+]
+
 def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple[str, BagOfHolding, Funds]:
     tag = username.split("#")[1]
     name = player_tags.get(tag)
@@ -30,10 +37,18 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple
                         
             # Bag of holding
             case "bag":
-                match args:
+                match args[1::]:
                     # Adds an item to the bag
-                    case ["add", item_arg, amount, cost, weight]:
+                    case ["add", item_arg] | ["add", item_arg, *_]: 
                         item = bag.get_item(item_id=item_arg.split(":")[1] if "id:" in item_arg[0:3] else None, item_name=item_arg)
+                        if len(args[1::]) >= 3:
+                            amount = args[3:][0] if len([args[3::]]) >= 1 else 1
+                            cost = args[3:][1] if len(args[3:]) >= 2 else 0
+                            weight = args[3:][2] if len(args[3:]) >= 3 else 0
+                        else:
+                            amount = 1
+                            cost = 0
+                            weight = 0
                         
                         if item is None and not "id:" in item_arg[0:3]:
                             
@@ -46,10 +61,10 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple
 
                             return f"Created new item: {item.item_name}", bag, funds
                         elif item is not None:
-                            item.amount = int(amount) if amount is not None else 1
-                            bag.add_item(item)
+                            amount = int(amount) if amount is not None else 1
+                            bag.add_n_items(item, amount)
                             
-                            return f"Added {item.amount} new instances, of item {item.item_name}", bag, funds
+                            return f"Added {amount} new instances, of item {item.item_name}", bag, funds
                         
                         return f"Invalid args: {args}", bag, funds
 
@@ -90,6 +105,8 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple
                     # Checks the stats of all items
                     case ["check", "all"]:
                         items = '\n'.join([str(item) for item in bag.storage if item.amount >= 1])
+                        if len(items) == 0:
+                            return "No items to check", bag, funds
                         return f"{items}", bag, funds
                     
                     # Check the specified item
@@ -100,9 +117,12 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple
                             return f"Could not find an instance of the specified item: {item_arg}", bag, funds
                         
                         return str(item), bag, funds
+                    case _:
+                        cmds = "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in BAG_COMMANDS])
+                        return f"{cmds}", bag, funds
                         
                         
                         
             
 
-        return f"Unknown command: {message}", bag, funds
+        return f"Command did not match any known command: '{message}' '{args[1::]}'", bag, funds
