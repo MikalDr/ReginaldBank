@@ -1,5 +1,14 @@
+from typing import Optional
+
 currency_value = {"Platinum": 1000, "Gold" : 100, "Silver" : 10, "Copper" : 1}
 FILE = "files/partyfund.txt"
+
+VALID_CURRENCY = {
+    "Platinum": ["Platinum", "p", "P", "PP", "pp"],
+    "Gold" : ["Gold", "g", "G", "GP", "gp"],
+    "Silver" : ["Silver", "s", "S", "SP", "sp"],
+    "Copper" : ["Copper", "c", "C", "CP", "cp"]
+}
 
 # TODO: Add item values to total value
 
@@ -100,3 +109,62 @@ class Funds:
         
         self.save_funds()
         return False
+
+    def parse_money_input(self, inp: str) -> tuple[int, str]:
+        """Parses user input, into a valid money amount, and currency type
+
+        Args:
+            inp (str): User input
+
+        Raises:
+            Exception: If input is invalid, rasies an exception
+
+        Returns:
+            tuple[int, str]: money, currency type
+        """
+        m_str = ""
+        currency = ""
+        for c in inp:
+            if c.isdigit():
+                m_str += c
+            else:
+                currency += c
+        
+        currency = self.get_valid_currency(currency)
+        
+        if m_str.isdigit() and currency is not None:
+            return int(m_str), currency
+        
+        raise Exception(f"Invalid argument: {inp}")
+
+
+
+    def get_valid_currency(self, s: str) -> Optional[str]:
+        """Checks if the given string, is a valid currency string
+
+        Args:
+            s (str): String to check
+
+        Returns:
+            (optional, str): The valid currency
+        """
+        for k, v in VALID_CURRENCY.items():
+            if s in v:
+                return k
+        return None
+    
+    
+    def is_valid_currency(self, s: str) -> bool:
+        """Checks if the given string, is a valid currency string
+
+        Args:
+            s (str): String to check
+
+        Returns:
+            bool: If its a valid currency symbol or not
+        """
+        for _, v in VALID_CURRENCY.items():
+            if s in v:
+                return True
+        return False
+            

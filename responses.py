@@ -13,38 +13,62 @@ BAG_COMMANDS = [
     ("check <item name or item id or all>", "Shows the status of the specified item")
 ]
 
+FUNDS_COMMAND = [
+    ("COMMAND <argument>", "Command setup"),
+    ("in <money>", "Shows how much money we got, in the specified currency"),
+    ("add <money>", "Adds the given amount of money"),
+    ("take <money>", "Takes out the given amount of money")
+]
+
 def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple[str, BagOfHolding, Funds]:
     tag = username.split("#")[1]
     name = player_tags.get(tag)
     p_message = message.lower().split(" ")
     
-    cmd, *args = p_message
+    cmd, c_type, *args = p_message
     
     if cmd in call_names:
-        match p_message[1]:
+        match c_type:
             # Money
             case "funds":
                 # If the length is two, return the funds
                 if(len(p_message) == 2):
                     ... # Return the funds
-                match p_message[2]:
-                    case "in":
-                        ... # Returns the funds in chosen currency
-                    case "add":
-                        ... # Adds to the funds
-                    case "take":
-                        ... # Removes from the funds
+                match args:
+                    # Returns the funds in chosen currency
+                    case ["in", money_arg]:
+                        if funds.is_valid_currency(money_arg):
+                            currency = funds.get_valid_currency(money_arg)
+                            return f"We have {funds.funds_in(currency)} {currency}", bag, funds
+                        return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds
+                    case ["add", money_arg]:
+                        try:
+                            money, m_type = funds.parse_money_input(money_arg)
+                            funds.add_funds(money, m_type)
+                            return f"Added {money} {m_type}", bag, funds
+                        except Exception:
+                            return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds
+                    case ["take", money_arg]:
+                        try:
+                            money, m_type = funds.parse_money_input(money_arg)
+                            funds.take_funds(money, m_type)
+                            return f"Added {money} {m_type}", bag, funds
+                        except Exception:
+                            return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds
+                    case _:
+                        cmds = "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in FUNDS_COMMAND])
+                        return f"{cmds}", bag, funds
                         
             # Bag of holding
             case "bag":
-                match args[1::]:
+                match args:
                     # Adds an item to the bag
                     case ["add", item_arg] | ["add", item_arg, *_]: 
                         item = bag.get_item(item_id=item_arg.split(":")[1] if "id:" in item_arg[0:3] else None, item_name=item_arg)
-                        if len(args[1::]) >= 3:
-                            amount = args[3:][0] if len([args[3::]]) >= 1 else 1
-                            cost = args[3:][1] if len(args[3:]) >= 2 else 0
-                            weight = args[3:][2] if len(args[3:]) >= 3 else 0
+                        if len(args) >= 3:
+                            amount = args[2:][0] if len([args[2:]]) >= 1 else 1
+                            cost = args[2:][1] if len(args[2:]) >= 2 else 0
+                            weight = args[2:][2] if len(args[2:]) >= 3 else 0
                         else:
                             amount = 1
                             cost = 0
@@ -121,8 +145,4 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple
                         cmds = "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in BAG_COMMANDS])
                         return f"{cmds}", bag, funds
                         
-                        
-                        
-            
-
-        return f"Command did not match any known command: '{message}' '{args[1::]}'", bag, funds
+    return f"Command did not match any known command: '{message}' '{args}'", bag, funds
