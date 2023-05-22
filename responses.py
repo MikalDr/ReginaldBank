@@ -6,7 +6,7 @@ player_tags = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8
 scorch_greetings = ["Please be careful today scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!", "Good Morning Scorch!"]
 
 
-def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple[str, BagOfHolding, Funds]:
+def handle_response(username, message, bag: BagOfHolding, funds: Funds) -> tuple[str, BagOfHolding, Funds]: # type: ignore
     tag = username.split("#")[1]
     name = player_tags.get(tag)
     p_message = message.lower().split(" ")
