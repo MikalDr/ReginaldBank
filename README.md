@@ -5,7 +5,7 @@ Todo:
 - [x] Bag of Holding ( Items Nils)
 - [x] Currency (Mikal)
 - [ ] Leaderboard
-- [ ] Log
+- [X] Log
 - [ ] Personalized messages
 - [ ] Can roll dice
 - [ ] Daily updates
