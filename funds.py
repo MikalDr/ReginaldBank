@@ -1,6 +1,9 @@
 currency_value = {"Platinum": 1000, "Gold" : 100, "Silver" : 10, "Copper" : 1}
+FILE = "files/partyfund.txt"
 
-class funds:
+# TODO: Add item values to total value
+
+class Funds:
     funds = {"Platinum" : 0, "Gold" : 0, "Silver" : 0, "Copper" : 0}
     key_list = list(funds.keys())
     
@@ -11,7 +14,7 @@ class funds:
         pass
     
     def __repr__(self):
-        return(self.funds["Platinum"],self.funds["Gold"], self.funds["Silver"],self.funds["Copper"])
+        return("{0};{1};{2};{3}".format(self.funds["Platinum"], self.funds["Gold"],self.funds["Silver"],self.funds["Copper"]))
     
     # Loads the partyfunds from the text file
     def load_funds(self):
@@ -19,17 +22,20 @@ class funds:
         Loads the partyfunds from the text file files/partyfunds.txt
         """
         
-        input = open("files/partyfund.txt").read().split(" ")
+        input = open(FILE).read().split(";")
         key_list = list(self.funds.keys())
         
         for i in range(len(input)):
             self.funds[key_list[i]] = int(input[i])
     
-    # Updates the partyfunds.txt file with new values
-    def store_funds(self, amount, currency):
-        pass
+    def save_funds(self):
+        """
+        Updates the partyfunds.txt file with the new partyfunds values.
+        """
+        with open(FILE, "w", encoding="utf-8") as f:
+            f.write(self.__repr__())
     
-    def funds_in(self, currency, item_values = False):
+    def funds_in(self, currency):
         """
             Show the partyfunds in the selected currency
         Args:
@@ -44,14 +50,23 @@ class funds:
     def add_funds(self, amount, currency):
         if(amount >= 0):
             self.funds[currency] += amount
+            self.save_funds()
             return True
         else:
             return False
-    
-    def convert_funds():
-        pass
-    
+        
     def take_funds(self, amount, currency):
+        """
+        Takes funds from the partyfunds, if there is not enough of selected currency
+        it converts from higher currency if possible
+
+        Args:
+            amount (_type_): amount taken
+            currency (_type_): selected currency
+
+        Returns:
+            bool: whether the process was handled or not 
+        """
         needed_amount = amount
         # Cant afford to take the amount
         if(self.funds_in(currency) < amount):
@@ -73,24 +88,15 @@ class funds:
                 if(self.funds[higher_currency] != 0):
                     self.funds[higher_currency] -= 1
                     lower_currency = self.key_list[self.key_list.index(currency)+i-1]
-                    self.funds[lower_currency] += currency_value[higher_currency]/currency_value[lower_currency]
+                    self.funds[lower_currency] += int(currency_value[higher_currency]/currency_value[lower_currency])
                     i-=1
                 else:
                     i+=1
             self.funds[currency] += abs(needed_amount)
-            
-            print(self.funds,"|||")
-            
                     
-        if(amount >= 0):
+        elif(amount >= 0):
             self.funds[currency] -= amount
             return True
+        
+        self.save_funds()
         return False
-    
-vault = funds()
-
-print(vault.__repr__())
-print(vault.funds_in("Platinum"))
-
-print(vault.funds)
-print(vault.take_funds(10, "Copper"))
