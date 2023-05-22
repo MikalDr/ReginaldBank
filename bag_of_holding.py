@@ -57,7 +57,7 @@ class BagOfHolding:
     def save_items(self) -> None:
         """Saves all the items, should be called before exit"""
         with open(FILE, "w", encoding="utf-8") as f:
-            f.write(HEADERS)
+            f.write(f"{HEADERS}\n")
             f.writelines([item.get_csv_format() for item in self.storage])
        
             
@@ -274,7 +274,11 @@ def get_id() -> int:
         int: new id
     """
     with open(FILE, "r", encoding="utf-8") as f:
-        return max([int(line.split(";")[0]) for line in f.readlines()[1::]]) + 1
+        lst = [int(line.split(";")[0]) for line in f.readlines()[1::]]
+        if len(lst) == 0:
+            lst = [0]
+        return max(lst) + 1
+        
             
 
 
