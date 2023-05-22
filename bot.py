@@ -2,6 +2,22 @@ import discord
 import responses
 from bag_of_holding import BagOfHolding
 from funds import Funds
+import signal
+import sys
+
+def pre_termination_proc(signal, frame) -> None:
+    """Saves the data in BAG and FUNDS, on termination"""
+    global BAG, FUNDS
+    print("Termination signal received. Performing cleanup...")
+    BAG.save_items()
+    FUNDS.save_funds()
+    print("Cleanup done.")
+    sys.exit(0)
+
+
+# Ensures this function will be called on termination
+signal.signal(signal.SIGINT, pre_termination_proc)
+signal.signal(signal.SIGTERM, pre_termination_proc)
 
 async def send_message(username, message, user_message, is_private):
     global BAG, FUNDS
@@ -16,8 +32,11 @@ async def send_message(username, message, user_message, is_private):
         print(e)
         
 BAG = BagOfHolding()    
+BAG.load_items()
+
 FUNDS = Funds()
-    
+FUNDS.load_funds()
+
 def run_discord_bot():
     TOKEN = 'MTEwMjY4NDcxNDE3MjY3ODMwNQ.GOnDw3.xkiXUIRtLtqBQA7-XCVUWqhZisjo-PWku_XSIo'
     
