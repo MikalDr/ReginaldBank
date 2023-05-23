@@ -1,10 +1,11 @@
-from bag_of_holding import BagOfHolding
+from bag_of_holding import BagOfHolding, find_probable_approximations
 from funds import Funds
 from logger import Log
 import random
 
 call_names = set(["reginald","regi", "rabbit", "hare"])
 player_tags = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8705":"Halfdan", "9521":"Marxson", "8054": "Strange Godlike Being"}
+
 SCORCH_GREETINGS = ["Please be careful today Scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!"]
 
 ZENITH_GREETINGS = []
@@ -57,14 +58,11 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
     tag = username.split("#")[1]
     name = player_tags.get(tag)
     p_message = message.lower().split(" ")
-    
+    greeting = ""
     # Personal message time
-    if len(p_message) == 1 and name is not None:
-        greetings = [f"{g} {name}" for g in DEFAULT_GREETINGS] + GREETING[name] if name in GREETING.keys() else []
-        return f"{random.choice(greetings)}", bag, funds, log
-                
-            
-                
+    if name is not None:
+        greeting = random.choice([f"{g} {name}" for g in DEFAULT_GREETINGS] + GREETING[name] if name in GREETING.keys() else [])
+        greeting += "\n"           
     
     cmd, c_type, *args = p_message
     
@@ -72,16 +70,19 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
         match c_type:
             # Money
             case "funds":
-                # If the length is two, return the funds
+                # If the length is two, return greeting +   the funds
                 if(len(p_message) == 2):
                     ... # Return the funds
                 match args:
+                    case ["check"]:
+                        return f"We have: ```\n{funds.__str__()}```", bag, funds, log
+
                     # Returns the funds in chosen currency
                     case ["in", money_arg]:
                         if funds.is_valid_currency(money_arg):
                             currency = funds.get_valid_currency(money_arg)
-                            return f"We have {funds.funds_in(currency)} {currency}", bag, funds, log
-                        return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
+                            return greeting + f"We have {funds.funds_in(currency)} {currency}", bag, funds, log
+                        return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                     case ["add", money_arg]:
                         try:
                             money, m_type = funds.parse_money_input(money_arg)
@@ -89,24 +90,24 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                             funds.add_funds(money, m_type)
                             
                         except Exception:
-                            return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
+                            return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                         log.add_log(name, "ADD", str(money)+" "+m_type)
-                        return f"Added {money} {m_type}", bag, funds, log
+                        return greeting +   f"Added {money} {m_type}", bag, funds, log
                     case ["take", money_arg]:
                         try:
                             money, m_type = funds.parse_money_input(money_arg)
                             funds.take_funds(money, m_type)
                             log.add_log(name, "TAKE", str(money)+" "+m_type)
-                            return f"Added {money} {m_type}", bag, funds, log
+                            return greeting +   f"Added {money} {m_type}", bag, funds, log
                         except Exception:
-                            return f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
+                            return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                     
                     case ["log"]:
-                        return log.show_log(), bag, funds, log
+                        return greeting +   log.show_log(), bag, funds, log
                     
-                    case _:
-                        cmds = "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in FUNDS_COMMAND])
-                        return f"{cmds}", bag, funds, log
+                    case ["help"]:
+                        cmds = "".join([f"```{c} \n- {i} ```" for c, i in FUNDS_COMMAND])
+                        return greeting +   f"{cmds}", bag, funds, log
                         
             # Bag of holding
             case "bag":
@@ -126,20 +127,24 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                         if item is None and not "id:" in item_arg[0:3]:
                             
                             item_name = item_arg
+
+                            if cost is not None and funds.is_valid_currency(cost): # type: ignore
+                                money, currency = funds.parse_money_input(cost) # type: ignore
+                                cost = funds.money_in(money, currency, "Gold")
                             
                             item = bag.add_new_item(item_name, # Name
                                              int(amount) if amount is not None else 1, # Amount
                                              int(cost) if cost is not None else 0, # Cost
                                              int(weight) if weight is not None else 0) # Weight
 
-                            return f"Created new item: {item.item_name}", bag, funds, log
+                            return greeting +   f"Created new item: {item.item_name}", bag, funds, log
                         elif item is not None:
                             amount = int(amount) if amount is not None else 1
                             bag.add_n_items(item, amount)
                             
-                            return f"Added {amount} new instances, of item {item.item_name}", bag, funds, log
+                            return greeting +   f"Added {amount} new instances, of item {item.item_name}", bag, funds, log
                         
-                        return f"Invalid args: {args}", bag, funds, log
+                        return greeting +   f"Invalid args: {args}", bag, funds, log
 
                     # Removes an instance from the bag
                     case ["remove", item_arg, amount]:
@@ -147,52 +152,52 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                         item = bag.get_item(item_id=item_arg.split(":")[1] if "id:" in item_arg[0:3] else None, item_name=item_arg)
                         
                         if item is None:
-                            return f"Invalid args: {args}", bag, funds, log
+                            return greeting +   f"Invalid args: {args}", bag, funds, log
                         try:
                             if bag.remove_item(item, int(amount) if amount is not None else 1):
-                                return f"Removed an instance of {item.item_name}", bag, funds, log
+                                return greeting +   f"Removed an instance of {item.item_name}", bag, funds, log
                             else:
-                                return f"Could not find an instance of the specified item", bag, funds, log
+                                return greeting +   f"Could not find an instance of the specified item", bag, funds, log
                         except Exception:
-                            return f"Could not remove the specified item, {item.item_name}, as there are not enough instances", bag, funds, log
+                            return greeting +   f"Could not remove the specified item, {item.item_name}, as there are not enough instances", bag, funds, log
                         
                     # Gets the total of a stat
                     case ["total", type, arg]:
                         if type in ["cost", "costs", "value", "worth"]:
-                            return f"The total cost of the items in the bag: {bag.get_total_worth(int(arg) if arg is not None else 0)} gp.", bag, funds, log
+                            return greeting +   f"The total cost of the items in the bag: {bag.get_total_worth(int(arg) if arg is not None else 0)} gp.", bag, funds, log
                         if type in ["weight", "weights", "lbs"]:
-                            return f"The total weight of the items in the bag: {bag.get_total_weight(int(arg) if arg is not None else 0)} lbs.", bag, funds, log
+                            return greeting +   f"The total weight of the items in the bag: {bag.get_total_weight(int(arg) if arg is not None else 0)} lbs.", bag, funds, log
                         
                     # Deletes an item from the bag
                     case ["delete", item_arg]:
                         item = bag.get_item(item_id=item_arg.split(":")[1] if "id:" in item_arg[0:3] else None, item_name=item_arg)
                         
                         if item is None:
-                            return f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
+                            return greeting +   f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
                         
                         if bag.delete_item(item):
-                            return f"Deleted {item.item_name} from the bag.", bag, funds, log
+                            return greeting +   f"Deleted {item.item_name} from the bag.", bag, funds, log
                         else:
-                            return f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
+                            return greeting +   f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
                     
                     # Checks the stats of all items
                     case ["check", "all"]:
                         items = '\n'.join([str(item) for item in bag.storage if item.amount >= 1])
                         if len(items) == 0:
-                            return "No items to check", bag, funds, log
-                        return f"{items}", bag, funds, log
+                            return greeting +   "No items to check", bag, funds, log
+                        return greeting +   f"{items}", bag, funds, log
                     
                     # Check the specified item
                     case ["check", item_arg]:
                         item = bag.get_item(item_id=item_arg.split(":")[1] if "id:" in item_arg[0:3] else None, item_name=item_arg)
                         
                         if item is None:
-                            return f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
+                            return greeting +   f"Could not find an instance of the specified item: {item_arg}", bag, funds, log
                         
-                        return str(item), bag, funds, log
-                    case _:
-                        cmds = "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in BAG_COMMANDS])
-                        return f"{cmds}", bag, funds, log
+                        return greeting +   str(item), bag, funds, log
+                    case ["help"]:
+                        cmds = "".join([f"```{c} \n- {i} ```" for c, i in BAG_COMMANDS])
+                        return greeting +   f"{cmds}", bag, funds, log
             case "log":
                 match args:
                     case ["add", user, amount]:
@@ -201,21 +206,32 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                             target = args[3]
                             
                         if not user.lower() in [k.lower() for k in GREETING.keys()]:
-                            return f"Who is {user}?", bag, funds, log
+                            return greeting +   f"Who is {user}?", bag, funds, log
                         
                         if not target not in "None" and target.lower() in [k.lower() for k in GREETING.keys()]:
-                            return f"Who is {target}?", bag, funds, log
+                            return greeting +   f"Who is {target}?", bag, funds, log
                         
                         if not amount.isdigit():
-                            return f"How can one do {amount} damage?", bag, funds, log
+                            return greeting +   f"How can one do {amount} damage?", bag, funds, log
                         
                         log.add_damage(user, amount, target)
                         
                         msg = "Added {user} did {amount}" + f" to {target}" if target not in "None" else ""
                         
-                        return msg, bag, funds, log
+                        return greeting +   msg, bag, funds, log
                     
                     case ["check"]:
-                        return log.show_damage_log(), bag, funds, log
-                        
-    return f"Command did not match any known command: '{message}' '{args}'", bag, funds, log
+                        return greeting +   log.show_damage_log(), bag, funds, log
+                    
+                    case ["help"]:
+                        cmds = "".join([f"```{c} \n- {i} ```" for c, i in LOGGER_COMMANDS])
+                        return greeting +   f"{cmds}", bag, funds, log
+
+            case "help":
+                message = "```1. regi funds help \n2. regi bag help\n3. regi log help``` "
+                return greeting + f"Sure thing! how can i assist you?" + message, bag, funds, log
+            
+            case "commands":
+                return greeting + "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in BAG_COMMANDS + FUNDS_COMMAND + LOGGER_COMMANDS]), bag, funds, log
+
+    return greeting +   f"Command did not match any known command: '´{message}´", bag, funds, log

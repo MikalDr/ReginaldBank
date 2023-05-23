@@ -1,2 +1,0 @@
-23.05 02:24;Kerke;ADD;10000Platinum;2023
-23.05 02:25;Kerke;TAKE;69Copper;2023

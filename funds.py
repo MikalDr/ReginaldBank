@@ -20,7 +20,11 @@ class Funds:
         self.load_funds()
     
     def __str__(self):
-        pass
+        pp = self.funds["Platinum"]
+        gp = self.funds["Gold"]
+        sp = self.funds["Silver"]
+        cp = self.funds["Copper"]
+        return "Platinum : {0} \nGold : {1} \nSilver : {2} \nCopper : {3}".format(pp, gp, sp, cp)
     
     def __repr__(self):
         return("{0};{1};{2};{3}".format(self.funds["Platinum"], self.funds["Gold"],self.funds["Silver"],self.funds["Copper"]))
@@ -36,6 +40,9 @@ class Funds:
         
         for i in range(len(input)):
             self.funds[key_list[i]] = int(input[i])
+
+    def money_in(self, money: int, currency_from: str, currency_to: str) -> float:
+        return money * (currency_value[currency_from] / currency_value[currency_to])
     
     def save_funds(self):
         """
