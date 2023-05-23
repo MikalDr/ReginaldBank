@@ -29,10 +29,14 @@ class Log:
                 continue
             damage_list += ";".join(entry) + "\n"
         
-        return entry_list + "#" + damage_list
+        return f"{entry_list}"#"{damage_list}"
     
     def load_log(self):
-        file = open(FILE).read().split("#")
+        file = open(FILE).read()
+        if "#" not in file:
+            return
+        file = file.split("#")
+        
         for entry in file[0].split("\n"):
             if(entry == ""):
                 continue
@@ -83,3 +87,5 @@ class Log:
         log = [datetime.now().strftime("%d.%m %H:%M"), user, str(amount), target]
         self.damage_log.append(log)
         self.save_log()
+        
+l = Log()
