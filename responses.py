@@ -62,7 +62,9 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
     # Personal message time
     if name is not None:
         greeting = random.choice([f"{g} {name}" for g in DEFAULT_GREETINGS] + GREETING[name] if name in GREETING.keys() else [])
-        greeting += "\n"           
+        greeting += "\n" 
+        if(p_message == 1):
+            return greeting, bag, funds, log        
     
     cmd, c_type, *args = p_message
     
@@ -88,17 +90,16 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                             money, m_type = funds.parse_money_input(money_arg)
                             
                             funds.add_funds(money, m_type)
-                            
+                            log.add_log(name, "ADD", str(money)+" "+m_type)
                         except Exception:
                             return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
-                        log.add_log(name, "ADD", str(money)+" "+m_type)
                         return greeting +   f"Added {money} {m_type}", bag, funds, log
                     case ["take", money_arg]:
                         try:
                             money, m_type = funds.parse_money_input(money_arg)
                             funds.take_funds(money, m_type)
                             log.add_log(name, "TAKE", str(money)+" "+m_type)
-                            return greeting +   f"Added {money} {m_type}", bag, funds, log
+                            return greeting +   f"took {money} {m_type}", bag, funds, log
                         except Exception:
                             return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                     
@@ -111,6 +112,7 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                         
             # Bag of holding
             case "bag":
+                return f"", bag, funds, log
                 match args:
                     # Adds an item to the bag
                     case ["add", item_arg] | ["add", item_arg, *_]: 
@@ -234,4 +236,4 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
             case "commands":
                 return greeting + "\n".join([f"Command: `{c}`\nInfo: `{i}`" for c, i in BAG_COMMANDS + FUNDS_COMMAND + LOGGER_COMMANDS]), bag, funds, log
 
-    return greeting +   f"Command did not match any known command: '´{message}´", bag, funds, log
+    return greeting +   f"Command did not match any known command: ´{message}´", bag, funds, log

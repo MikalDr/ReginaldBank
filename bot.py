@@ -10,7 +10,7 @@ def pre_termination_proc(signal, frame) -> None:
     """Saves the data in BAG and FUNDS, on termination"""
     global BAG, FUNDS, LOG
     print("Termination signal received. Performing cleanup...")
-    BAG.save_items()
+    #BAG.save_items()
     FUNDS.save_funds()
     LOG.save_log()
     print("Cleanup done.")
