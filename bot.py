@@ -2,15 +2,17 @@ import discord
 import responses
 from bag_of_holding import BagOfHolding
 from funds import Funds
+from logger import Log
 import signal
 import sys
 
 def pre_termination_proc(signal, frame) -> None:
     """Saves the data in BAG and FUNDS, on termination"""
-    global BAG, FUNDS
+    global BAG, FUNDS, LOG
     print("Termination signal received. Performing cleanup...")
     BAG.save_items()
     FUNDS.save_funds()
+    LOG.save_log()
     print("Cleanup done.")
     sys.exit(0)
 
@@ -20,12 +22,13 @@ signal.signal(signal.SIGINT, pre_termination_proc)
 signal.signal(signal.SIGTERM, pre_termination_proc)
 
 async def send_message(username, message, user_message, is_private):
-    global BAG, FUNDS
+    global BAG, FUNDS, LOG
     
     try:
-        response, _BAG, _FUNDS = responses.handle_response(username, user_message, BAG, FUNDS)
+        response, _BAG, _FUNDS, _LOG = responses.handle_response(username, user_message, BAG, FUNDS, LOG)
         BAG = _BAG
         FUNDS = _FUNDS
+        LOG = _LOG
         await message.author.send(response) if is_private else await message.channel.send(response)
         print("channel |",message.channel)
     except Exception as e:
@@ -36,6 +39,9 @@ BAG.load_items()
 
 FUNDS = Funds()
 FUNDS.load_funds()
+
+LOG = Log()
+LOG.load_log()
 
 def run_discord_bot():
     TOKEN = 'MTEwMjY4NDcxNDE3MjY3ODMwNQ.GOnDw3.xkiXUIRtLtqBQA7-XCVUWqhZisjo-PWku_XSIo'

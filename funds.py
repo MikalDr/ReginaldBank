@@ -129,13 +129,15 @@ class Funds:
                 m_str += c
             else:
                 currency += c
+                
         
         currency = self.get_valid_currency(currency)
         
-        if m_str.isdigit() and currency is not None:
-            return int(m_str), currency
+        if currency is None:
+            raise Exception(f"Invalid argument: {inp}")
         
-        raise Exception(f"Invalid argument: {inp}")
+        return int(m_str), currency
+        
 
 
 
@@ -151,6 +153,9 @@ class Funds:
         for k, v in VALID_CURRENCY.items():
             if s in v:
                 return k
+            for vl in v:
+                if s in vl:
+                    return k
         return None
     
     
