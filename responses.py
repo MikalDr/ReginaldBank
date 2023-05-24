@@ -6,21 +6,21 @@ import random
 call_names = set(["reginald","regi", "rabbit", "hare"])
 player_tags = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8705":"Halfdan", "9521":"Marxson", "8054": "Strange Godlike Being"}
 
-SCORCH_GREETINGS = ["Please be careful today Scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!"]
+SCORCH_GREETINGS = ["Please be careful today Scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!", "Note that i like my hair, not burnt", "I'll forgive you this once since you're but a child"]
 
-ZENITH_GREETINGS = []
+ZENITH_GREETINGS = ["I always had a fantasy that elves were perfect being... well used to,", "Written anything nice recently?", "What does you book say about my kind?"]
 
-REGINALD_GREETINGS = []
+REGINALD_GREETINGS = ["Fancy seeing you", "Always a pleasure", "You look ravishing today", ""]
 
-KERKE_GREETINGS = []
+KERKE_GREETINGS = ["Happy to see you!", "Have you been working out recently?", "Nice bod"]
 
-HALFDAN_GREETINGS = []
+HALFDAN_GREETINGS = ["I've been meaning to speak to you about the youth potion,", "Want to have a duel? your bajo my shawm?"]
 
-MARXSON_GREETINGS = []
+MARXSON_GREETINGS = ["Glad we see eye to eye, you and i", "Beard looking as majestic as always", "May Moradin be with you", "Happy to see you!"]
 
-MORAGO_GREETINGS = []
+MORAGO_GREETINGS = ["Please do not smite me today, oh", ""]
 
-DEFAULT_GREETINGS = ["Hiya!", "Hey!", "Hi!", "Hello!"]
+DEFAULT_GREETINGS = ["Greetings!", "Hey!", "Hi!", "Hello!"]
 
 GREETING = {
     "Zenith": ZENITH_GREETINGS,
