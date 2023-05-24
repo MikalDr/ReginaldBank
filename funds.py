@@ -146,7 +146,7 @@ class Funds:
                 currency += c
                 
         
-        currency = self.get_valid_currency(currency)
+        currency = get_valid_currency(currency)
         
         if currency is None:
             raise Exception(f"Invalid argument: {inp}")
@@ -156,32 +156,32 @@ class Funds:
 
 
 
-    def get_valid_currency(self, s: str) -> Optional[Currency]:
-        """Checks if the given string, is a valid currency string
+def get_valid_currency(s: str) -> Optional[Currency]:
+    """Checks if the given string, is a valid currency string
 
-        Args:
-            s (str): String to check
+    Args:
+        s (str): String to check
 
-        Returns:
-            (optional, str): The valid currency
-        """
-        for k, v in VALID_CURRENCY.items():
-            if s in v:
-                return k
-        return None
-    
-    
-    def is_valid_currency(self, s: str) -> bool:
-        """Checks if the given string, is a valid currency string
+    Returns:
+        (optional, str): The valid currency
+    """
+    for k, v in VALID_CURRENCY.items():
+        if s in v:
+            return k
+    return None
 
-        Args:
-            s (str): String to check
 
-        Returns:
-            bool: If its a valid currency symbol or not
-        """
-        for _, v in VALID_CURRENCY.items():
-            if s in v:
-                return True
-        return False
+def is_valid_currency(s: str) -> bool:
+    """Checks if the given string, is a valid currency string
+
+    Args:
+        s (str): String to check
+
+    Returns:
+        bool: If its a valid currency symbol or not
+    """
+    for _, v in VALID_CURRENCY.items():
+        if s in v:
+            return True
+    return False
             
