@@ -1,5 +1,5 @@
 from bag_of_holding import BagOfHolding, find_probable_approximations
-from funds import Funds
+from funds import Funds, is_valid_currency, get_valid_currency
 from logger import Log
 import random
 
@@ -81,8 +81,8 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
 
                     # Returns the funds in chosen currency
                     case ["in", money_arg]:
-                        if funds.is_valid_currency(money_arg):
-                            currency = funds.get_valid_currency(money_arg)
+                        currency = get_valid_currency(money_arg)
+                        if currency is not None:
                             return greeting + f"We have {funds.funds_in(currency)} {currency}", bag, funds, log
                         return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                     case ["add", money_arg]:
@@ -90,7 +90,7 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                             money, m_type = funds.parse_money_input(money_arg)
                             
                             funds.add_funds(money, m_type)
-                            log.add_log(name, "ADD", str(money)+" "+m_type)
+                            log.add_log(name, "ADD", str(money)+" "+str(m_type))
                         except Exception:
                             return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
                         return greeting +   f"Added {money} {m_type}", bag, funds, log
@@ -98,7 +98,7 @@ def handle_response(username, message, bag: BagOfHolding, funds: Funds, log: Log
                         try:
                             money, m_type = funds.parse_money_input(money_arg)
                             funds.take_funds(money, m_type)
-                            log.add_log(name, "TAKE", str(money)+" "+m_type)
+                            log.add_log(name, "TAKE", str(money)+" "+str(m_type))
                             return greeting +   f"took {money} {m_type}", bag, funds, log
                         except Exception:
                             return greeting +   f"I'm sorry, I did not understand what you meant, by {money_arg}", bag, funds, log
