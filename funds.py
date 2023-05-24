@@ -1,33 +1,41 @@
 from typing import Optional
 
-currency_value = {"Platinum": 1000, "Gold" : 100, "Silver" : 10, "Copper" : 1}
+from enum import Enum
+
+class Currency(Enum):
+    Platinum = 0,
+    Gold = 1,
+    Silver = 2,
+    Copper = 3
+
+currency_value = {Currency.Platinum: 1000, Currency.Gold : 100, Currency.Silver : 10, Currency.Copper : 1}
 FILE = "files/partyfund.txt"
 
 VALID_CURRENCY = {
-    "Platinum": ["Platinum", "p", "P", "PP", "pp"],
-    "Gold" : ["Gold", "g", "G", "GP", "gp"],
-    "Silver" : ["Silver", "s", "S", "SP", "sp"],
-    "Copper" : ["Copper", "c", "C", "CP", "cp"]
+    Currency.Platinum: ["Platinum", "p", "P", "PP", "pp"],
+    Currency.Gold : ["Gold", "g", "G", "GP", "gp"],
+    Currency.Silver : ["Silver", "s", "S", "SP", "sp"],
+    Currency.Copper : ["Copper", "c", "C", "CP", "cp"]
 }
 
 # TODO: Add item values to total value
 
 class Funds:
-    funds = {"Platinum" : 0, "Gold" : 0, "Silver" : 0, "Copper" : 0}
+    funds = {Currency.Platinum : 0, Currency.Gold : 0, Currency.Silver : 0, Currency.Copper : 0}
     key_list = list(funds.keys())
     
     def __init__(self):
         self.load_funds()
     
     def __str__(self):
-        pp = self.funds["Platinum"]
-        gp = self.funds["Gold"]
-        sp = self.funds["Silver"]
-        cp = self.funds["Copper"]
+        pp = self.funds[Currency.Platinum]
+        gp = self.funds[Currency.Gold]
+        sp = self.funds[Currency.Silver]
+        cp = self.funds[Currency.Copper]
         return "Platinum : {0} \nGold : {1} \nSilver : {2} \nCopper : {3}".format(pp, gp, sp, cp)
     
     def __repr__(self):
-        return("{0};{1};{2};{3}".format(self.funds["Platinum"], self.funds["Gold"],self.funds["Silver"],self.funds["Copper"]))
+        return("{0};{1};{2};{3}".format(self.funds[Currency.Platinum], self.funds[Currency.Gold],self.funds[Currency.Silver],self.funds[Currency.Copper]))
     
     # Loads the partyfunds from the text file
     def load_funds(self):
@@ -41,7 +49,7 @@ class Funds:
         for i in range(len(input)):
             self.funds[key_list[i]] = int(input[i])
 
-    def money_in(self, money: int, currency_from: str, currency_to: str) -> float:
+    def money_in(self, money: int, currency_from: Currency, currency_to: Currency) -> float:
         return money * (currency_value[currency_from] / currency_value[currency_to])
     
     def save_funds(self):
@@ -51,7 +59,7 @@ class Funds:
         with open(FILE, "w", encoding="utf-8") as f:
             f.write(self.__repr__())
     
-    def funds_in(self, currency):
+    def funds_in(self, currency: Currency) -> int:
         """
             Show the partyfunds in the selected currency
         Args:
@@ -63,7 +71,7 @@ class Funds:
             amount += self.funds[key] * (currency_value[key]/currency_value[currency])
         return int(amount)
     
-    def add_funds(self, amount, currency):
+    def add_funds(self, amount: int, currency: Currency) -> bool:
         if(amount >= 0):
             self.funds[currency] += amount
             self.save_funds()
@@ -71,7 +79,7 @@ class Funds:
         else:
             return False
         
-    def take_funds(self, amount, currency):
+    def take_funds(self, amount: int, currency: Currency) -> bool:
         """
         Takes funds from the partyfunds, if there is not enough of selected currency
         it converts from higher currency if possible
@@ -117,7 +125,7 @@ class Funds:
         self.save_funds()
         return False
 
-    def parse_money_input(self, inp: str) -> tuple[int, str]:
+    def parse_money_input(self, inp: str) -> tuple[int, Currency]:
         """Parses user input, into a valid money amount, and currency type
 
         Args:
@@ -127,7 +135,7 @@ class Funds:
             Exception: If input is invalid, rasies an exception
 
         Returns:
-            tuple[int, str]: money, currency type
+            tuple[int, Currency]: money, currency type
         """
         m_str = ""
         currency = ""
@@ -148,7 +156,7 @@ class Funds:
 
 
 
-    def get_valid_currency(self, s: str) -> Optional[str]:
+    def get_valid_currency(self, s: str) -> Optional[Currency]:
         """Checks if the given string, is a valid currency string
 
         Args:
@@ -160,9 +168,6 @@ class Funds:
         for k, v in VALID_CURRENCY.items():
             if s in v:
                 return k
-            for vl in v:
-                if s in vl:
-                    return k
         return None
     
     
