@@ -1,19 +1,24 @@
 from __future__ import annotations
 from typing import Optional
 import Levenshtein
+from funds import Currency, get_valid_currency
 
 FILE = "files/partystorage.csv"
-HEADERS = "id;item_name;amount;cost;weight"
+HEADERS = "id;item_name;amount;cost;currency;weight"
 SEPERATOR = ";"
 
+ID = 0
+
 class Item:
-    def __init__(self, item_name: str, amount: int, cost: int, item_weight: int = 0, item_id: Optional[int] = None) -> None:
+    def __init__(self, item_name: str, amount: int = 1, cost: int = 0, currency: Currency = Currency.Gold, item_weight: int = 0, item_id: Optional[int] = None) -> None:
         self.item_name = item_name
         """Name of the item"""
         self.amount = amount
         """How many instances of the item"""
         self.cost = cost
-        """How much each item is worth, in gold"""
+        """How much each item is worth, in the specified currency"""
+        self.currency = currency
+        """Currency the item's cost is listed in"""
         self.item_weight = item_weight
         """Weight of the item, in lbs"""
         
@@ -23,7 +28,8 @@ class Item:
         """Id of the item"""
         
     def get_csv_format(self) -> str:
-        return f"{self.item_id}{SEPERATOR}{self.item_name}{SEPERATOR}{self.amount}{SEPERATOR}{self.cost}"
+        return f"{self.item_id}{SEPERATOR}{self.item_name}{SEPERATOR}{self.amount}{SEPERATOR}{self.cost}{SEPERATOR}{self.currency}{SEPERATOR}{self.item_weight}"
+    
         
     def __str__(self) -> str:
         return f"{self.item_name} x{self.amount}"
@@ -35,10 +41,28 @@ class BagOfHolding:
         
     def load_items(self) -> None:
         """Loads all the items from the file, into the bag of holding, should be called on start"""
+        
+        
         with open(FILE, "r", encoding="utf-8") as f:
-            for line in f.readlines()[1::]:
-                item_id, item_name, amount, cost = line.split(SEPERATOR)
-                self.storage.add(Item(item_name, int(amount), int(cost), int(item_id)))
+            global ID
+            
+            lst = [int(line.split(";")[0]) for line in f.readlines()[1:]]
+            if len(lst) == 0:
+                lst = [0]
+            
+            ID = max(lst)
+            
+            for line in f.readlines()[1:]:
+                
+                if line == "":
+                    continue
+                
+                item_id, item_name, amount, cost, currency, weight = line.split(SEPERATOR)
+                c = get_valid_currency(currency)
+                self.storage.add(Item(item_name, int(amount), int(cost), c if c is not None else Currency.Gold, int(item_id), int(weight)))
+        
+            
+        
     
     def add_n_items(self, item: Item, n: int) -> None:
         """Adds n instances of the specified item to the bag
@@ -58,8 +82,8 @@ class BagOfHolding:
         """Saves all the items, should be called before exit"""
         with open(FILE, "w", encoding="utf-8") as f:
             f.write(f"{HEADERS}\n")
-            f.writelines([item.get_csv_format() for item in self.storage])
-       
+            f.write("\n".join([item.get_csv_format() for item in self.storage]))
+            f.write("\n")
             
     def get_total_worth(self, assumption: int = 0) -> int:
         """Returns the total cost of the items, in gp
@@ -167,7 +191,7 @@ class BagOfHolding:
         return True
     
     
-    def add_new_item(self, item_name: str, amount: int = 1, cost: int = 0, item_weight: int = 0) -> Item:
+    def add_new_item(self, item_name: str, amount: int = 1, cost: int = 0, currency: Currency = Currency.Gold, item_weight: int = 0) -> Item:
         """Adds a new item, and returns the instances, to the storage
 
         Args:
@@ -182,7 +206,7 @@ class BagOfHolding:
         pre_item = self.get_item(item_name=item_name)
         
         if pre_item is None:
-            item = Item(item_name, amount, cost, item_weight, get_id())
+            item = Item(item_name, amount, cost, currency, item_weight, get_id())
             self.storage.add(item)
             return item
 
@@ -242,8 +266,6 @@ class BagOfHolding:
         return find_probable_approximations(item_name, self.get_item_names())
 
 
-
-
 def find_probable_approximations(word: str, word_list: list[str], threshold: int = 2) -> list[str]:
     """Finds a probable appxorimation for the given word,
     by checking the it against the list of words,
@@ -273,15 +295,9 @@ def get_id() -> int:
     Returns:
         int: new id
     """
-    with open(FILE, "r", encoding="utf-8") as f:
-        lst = [int(line.split(";")[0]) for line in f.readlines()[1::]]
-        if len(lst) == 0:
-            lst = [0]
-        return max(lst) + 1
+    
+    global ID
+    ID += 1
+    return ID
         
             
-
-
-if __name__ == "__main__":
-    b = BagOfHolding()
-    b.load_items()

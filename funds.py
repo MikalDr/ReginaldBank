@@ -7,6 +7,9 @@ class Currency(Enum):
     Gold = 1,
     Silver = 2,
     Copper = 3
+    
+    def __str__(self) -> str:
+        return f"{self.name}"
 
 currency_value = {Currency.Platinum: 1000, Currency.Gold : 100, Currency.Silver : 10, Currency.Copper : 1}
 FILE = "files/partyfund.txt"
