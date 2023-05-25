@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import Optional
 import Levenshtein
+from datetime import datetime
 from funds import Currency, get_valid_currency
 
 FILE = "files/partystorage.csv"
-HEADERS = "id;item_name;amount;cost;currency;weight"
+HEADERS = "id;item_name;amount;cost;currency;weight;date"
 SEPERATOR = ";"
-
+DATEFORMAT = "%d.%m.%Y %H:%M"
 ID = 0
 
 class Item:
@@ -21,6 +22,7 @@ class Item:
         """Currency the item's cost is listed in"""
         self.item_weight = item_weight
         """Weight of the item, in lbs"""
+        self.date_added = datetime.now()
         
         if item_id is None:
             item_id = get_id()
@@ -28,8 +30,10 @@ class Item:
         """Id of the item"""
         
     def get_csv_format(self) -> str:
-        return f"{self.item_id}{SEPERATOR}{self.item_name}{SEPERATOR}{self.amount}{SEPERATOR}{self.cost}{SEPERATOR}{self.currency}{SEPERATOR}{self.item_weight}"
+        return f"{self.item_id}{SEPERATOR}{self.item_name}{SEPERATOR}{self.amount}{SEPERATOR}{self.cost}{SEPERATOR}{self.currency}{SEPERATOR}{self.item_weight}{SEPERATOR}{self.date_added.strftime(DATEFORMAT)}"
     
+    def get_long_name(self) -> str:
+        return f"Id: {self.item_id}, Name: {self.item_name}, Amount: {self.amount}, Cost: {self.cost}{self.currency}, Weight: {self.item_weight}"
         
     def __str__(self) -> str:
         return f"{self.item_name} x{self.amount}"
@@ -57,9 +61,11 @@ class BagOfHolding:
                 if line == "":
                     continue
                 
-                item_id, item_name, amount, cost, currency, weight = line.split(SEPERATOR)
+                item_id, item_name, amount, cost, currency, weight, date = line.split(SEPERATOR)
                 c = get_valid_currency(currency)
-                self.storage.add(Item(item_name, int(amount), int(cost), c if c is not None else Currency.Gold, int(item_id), int(weight)))
+                item = Item(item_name, int(amount), int(cost), c if c is not None else Currency.Gold, int(item_id), int(weight))
+                item.date_added = datetime.strptime(date, DATEFORMAT)
+                self.storage.add(item)
         
             
         
@@ -264,6 +270,14 @@ class BagOfHolding:
             list[str]: List of probable approximations
         """
         return find_probable_approximations(item_name, self.get_item_names())
+    
+    def get_all_items_short(self) -> str:
+        """Gets all items, and readies them for print, uses short name
+
+        Returns:
+            str: String representation of all the items in the bag
+        """
+        return "\n".join(f"`{str(item)}`" for item in self.storage)
 
 
 def find_probable_approximations(word: str, word_list: list[str], threshold: int = 2) -> list[str]:

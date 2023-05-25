@@ -155,18 +155,25 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
     # We start at 1, since the first word is always 'regi'
     cmd = p_message[1]
     
-    args, flags = get_flags_and_arguments(" ".join(p_message[2:]))
+    args, flags = get_flags_and_arguments(" ".join(p_message[2:])) # Get arguments and flag, ignoring the first two words
     
     match cmd:
         case "log":
             raise NotImplementedError
         
+        # TODO: Add flags
         # Adds item or money
         case "add":
+            
+            # Player has only typed regi add
+            if len(args) == 0:
+                return pretty_command("add", flags), bag, funds, log
+            
             m_money = args[0]
             
             # TODO: Fix edge case where user types '1g10p'
             if is_valid_currency("".join([c for c in m_money if not c.isdigit()])):
+                # Add money
                 money, currency = funds.parse_money_input(m_money)
                 
                 funds.add_funds(money, currency)
@@ -176,6 +183,8 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                                 
                 return f"Added {money}{currency} to our funds", bag, funds, log
             else:
+                # Add item
+                
                 item_name = args[0]
                 amount = 1
                 cost = 0
@@ -208,19 +217,100 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 item = bag.add_new_item(item_name, amount, cost, currency, weight)
                 
                 return f"Added {str(item)} to our bag", bag, funds, log
-                        
+
+        # TODO: Add logging
+        # TODO: Add flags
+        # Take item/gold
         case "take":
-            raise NotImplementedError
             
+            # Player has only typed regi take
+            if len(args) == 0:
+                return pretty_command("take", flags), bag, funds, log
+            
+            m_money = args[0]
+            
+            # Take money
+            if is_valid_currency(m_money):
+                money, currency = funds.parse_money_input(m_money)
+                
+                if funds.take_funds(money, currency):
+                    return f"Took {money}{currency} out of our funds.", bag, funds, log
+                else:
+                    return f"We dont have enough {money}{currency} in our funds.", bag, funds, log
+            # Take item
+            
+            # TODO: Implement id search, instead of just name
+            item_name = args[0]
+            amount = 1
+            
+            # Convert user input into int
+            try:
+                if len(args[1:]) >= 1:
+                    amount = int(args[1])
+            except ValueError:
+                return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+            
+            item = bag.get_item(item_name=item_name)
+            
+            # If item is none, the given item was not found
+            if item is not None:
+                if bag.remove_item(item, amount): # If remove_item returns true, the item was removed
+                    return f"Took {amount} instances of {item}, out of our bag.", bag, funds, log
+                else:
+                    return f"Can't take {amount} instances of {item}, we only have {item.amount}", bag, funds, log
+            else:
+                return f"I am sorry, I can't find '{item_name}'", bag, funds, log
+        
+        # TODO: Add logging
+        # TODO: Add flags
+        # Find item
         case "find":
-            raise NotImplementedError
+            
+            # Player has only typed regi find
+            if len(args) == 0:
+                return pretty_command("find", flags), bag, funds, log
+            
+            item_name = args[0]
+            amount = 1
+            
+            # Convert user input into int
+            try:
+                if len(args[1:]) >= 1:
+                    amount = int(args[1])
+            except ValueError:
+                return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+            
+            item = bag.get_item(item_name=item_name)
+            
+            if item is not None:
+                return f"Found {item.item_name}, here's some information about it:\n{item.get_long_name()}", bag, funds, log
+            else:
+                return f"I am sorry, I can't find '{item_name}'", bag, funds, log
         
+        # TODO: Add logging
+        # TODO: Add flags
+        # Displays funds
         case "funds":
-            raise NotImplementedError
+            
+            if len(args) == 0:
+                return f"Here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
+            
+            c = args[1]
+            
+            if is_valid_currency(c):
+                _, currency = funds.parse_money_input(f"0{c}")
+                return f"Here's our funds in {str(currency).lower()}: {funds.funds_in(currency)}", bag, funds, log
+            else:
+                return f"I am sorry, I havent heard about the currency: '{args[1]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
         
+        # TODO: Add flags
+        # TODO: Add logging
+        # Displays the bag
         case "bag":
-            raise NotImplementedError
-    
+            return f"Here's our bag: {bag.get_all_items_short()}", bag, funds, log
+
+        # TODO: Add flags
+        # TODO: Add logging
         case "help":
             if len(args) == 0:
                 return "\n".join([pretty_command(c, flags) for c in COMMANDS.keys()]), bag, funds, log
@@ -236,7 +326,6 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                     msg.append(f"I have no knowledge about: '{ar}'")
             
             return "\n".join(msg), bag, funds, log
-            
             
         case _:
             return f"I am sorry, I did not understand what you meant by '{p_message[1:]}', use 'help' to get all commands", bag, funds, log

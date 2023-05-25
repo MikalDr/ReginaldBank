@@ -1,5 +1,6 @@
 import discord
 import responses
+import commands
 from bag_of_holding import BagOfHolding
 from funds import Funds
 from logger import Log
@@ -25,7 +26,8 @@ async def send_message(username, message, user_message, is_private):
     global BAG, FUNDS, LOG
     
     try:
-        response, _BAG, _FUNDS, _LOG = responses.handle_response(username, user_message, BAG, FUNDS, LOG)
+        #response, _BAG, _FUNDS, _LOG = responses.handle_response(username, user_message, BAG, FUNDS, LOG)
+        response, _BAG, _FUNDS, _LOG = commands.parse_command(username, user_message, BAG, FUNDS, LOG)
         BAG = _BAG
         FUNDS = _FUNDS
         LOG = _LOG
