@@ -7,6 +7,8 @@ from logger import Log
 import signal
 import sys
 
+TOKEN = open("files/token.txt").read()
+
 def pre_termination_proc(signal, frame) -> None:
     """Saves the data in BAG and FUNDS, on termination"""
     global BAG, FUNDS, LOG
@@ -46,9 +48,6 @@ LOG = Log()
 LOG.load_log()
 
 def run_discord_bot():
-    TOKEN = 'MTEwMjY4NDcxNDE3MjY3ODMwNQ.GOnDw3.xkiXUIRtLtqBQA7-XCVUWqhZisjo-PWku_XSIo'
-    
-    print("Hello1")
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
