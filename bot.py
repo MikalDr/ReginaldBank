@@ -33,10 +33,14 @@ async def send_message(username, message, user_message, is_private):
         BAG = _BAG
         FUNDS = _FUNDS
         LOG = _LOG
+        
+        if not response:
+            return
+        
         await message.author.send(response) if is_private else await message.channel.send(response)
         print("channel |",message.channel)
     except Exception as e:
-        print(e)
+        print(f"Exception:\n{e}\nStacktrace:{e.with_traceback()}\n")
         
 BAG = BagOfHolding()    
 BAG.load_items()
