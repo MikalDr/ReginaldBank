@@ -15,10 +15,10 @@ currency_value = {Currency.Platinum: 1000, Currency.Gold : 100, Currency.Silver 
 FILE = "files/partyfund.txt"
 
 VALID_CURRENCY = {
-    Currency.Platinum: ["Platinum", "p", "P", "PP", "pp"],
-    Currency.Gold : ["Gold", "g", "G", "GP", "gp"],
-    Currency.Silver : ["Silver", "s", "S", "SP", "sp"],
-    Currency.Copper : ["Copper", "c", "C", "CP", "cp"]
+    Currency.Platinum: ["platinum", "p", "pp"],
+    Currency.Gold : ["gold", "g", "gp"],
+    Currency.Silver : ["silver", "s", "sp"],
+    Currency.Copper : ["copper", "c", "cp"]
 }
 
 # TODO: Add item values to total value
@@ -31,11 +31,17 @@ class Funds:
         self.load_funds()
     
     def __str__(self):
-        pp = self.funds[Currency.Platinum]
-        gp = self.funds[Currency.Gold]
-        sp = self.funds[Currency.Silver]
-        cp = self.funds[Currency.Copper]
-        return "Platinum : {0} \nGold : {1} \nSilver : {2} \nCopper : {3}".format(pp, gp, sp, cp)
+
+        # Get the maximum length of the currency and colon
+        max_length = max(len(str(currency)) for currency in self.funds.keys()) + 2
+
+        # Format the output string with dynamic spacing
+        output = ""
+        for currency, count in self.funds.items():
+            output += f"{str(currency).ljust(max_length - 1)}: {count}\n"
+
+        # Print the formatted output
+        return output        
     
     def __repr__(self):
         return("{0};{1};{2};{3}".format(self.funds[Currency.Platinum], self.funds[Currency.Gold],self.funds[Currency.Silver],self.funds[Currency.Copper]))

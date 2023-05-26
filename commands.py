@@ -157,6 +157,12 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
     
     args, flags = get_flags_and_arguments(" ".join(p_message[2:])) # Get arguments and flag, ignoring the first two words
     
+    print(f"Message:'{message}'")
+    print(f"p_message:'{p_message}'")
+    print(f"cmd:'{p_message[1]}'")
+    print(f"args:'{args}'")
+    print(f"flags:'{flags}'")
+    
     match cmd:
         case "log":
             raise NotImplementedError
@@ -193,23 +199,23 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 
                 try:
                     if len(args[1:]) >= 1:
-                        amount = int(args[1])
+                        amount = int(args[0])
                 except ValueError:
-                    return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+                    return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
 
                 if len(args[2:]) >= 1:
-                    raw_cost = args[2]
+                    raw_cost = args[1]
                     
                     # TODO: Fix edge case where user types '1g10p'
                     if not is_valid_currency("".join([c for c in raw_cost if not c.isdigit()])):
-                        return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+                        return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
                     cost, currency = funds.parse_money_input(raw_cost)
 
                 try:
                     if len(args[3:]) >= 1:
-                        weight = int(args[3])
+                        weight = int(args[2])
                 except ValueError:
-                    return f"I am sorry, I haven't heard of the number '{args[3]}'", bag, funds, log
+                    return f"I am sorry, I haven't heard of the number '{args[2]}'", bag, funds, log
                 
                 # TODO: Implement logging, for items
                 # TODO: Implement logging, for commands
@@ -230,13 +236,14 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             m_money = args[0]
             
             # Take money
-            if is_valid_currency(m_money):
+            # TODO: Implement in such a way, so that a user cannot type 10g10p
+            if is_valid_currency("".join([c for c in m_money if not c.isdigit()])):
                 money, currency = funds.parse_money_input(m_money)
                 
                 if funds.take_funds(money, currency):
-                    return f"Took {money}{currency} out of our funds.", bag, funds, log
+                    return f"Took {money} {currency} out of our funds.", bag, funds, log
                 else:
-                    return f"We dont have enough {money}{currency} in our funds.", bag, funds, log
+                    return f"We dont have enough {money} {currency} in our funds.", bag, funds, log
             # Take item
             
             # TODO: Implement id search, instead of just name
@@ -246,9 +253,9 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             # Convert user input into int
             try:
                 if len(args[1:]) >= 1:
-                    amount = int(args[1])
+                    amount = int(args[0])
             except ValueError:
-                return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
             
             item = bag.get_item(item_name=item_name)
             
@@ -276,9 +283,9 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             # Convert user input into int
             try:
                 if len(args[1:]) >= 1:
-                    amount = int(args[1])
+                    amount = int(args[0])
             except ValueError:
-                return f"I am sorry, I haven't heard of the number '{args[1]}'", bag, funds, log
+                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
             
             item = bag.get_item(item_name=item_name)
             
@@ -290,18 +297,18 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         # TODO: Add logging
         # TODO: Add flags
         # Displays funds
-        case "funds":
+        case "funds" | "fund" | "gold":
             
             if len(args) == 0:
-                return f"Here's our funds: \n ```{funds} \nTotal Gold: {funds.funds_in('Gold')} ```", bag, funds, log
+                return f"Here's our funds:```{funds}``````Total Gold: {funds.funds_in(Currency.Gold)}```", bag, funds, log 
             
-            c = args[1]
+            c = args[0]
             
             if is_valid_currency(c):
                 _, currency = funds.parse_money_input(f"0{c}")
-                return f"Here's our funds in {str(currency).lower()}: {funds.funds_in(currency)}", bag, funds, log
+                return f"Here's our funds in {str(currency).lower()}:```{funds.funds_in(currency)} {currency}```", bag, funds, log
             else:
-                return f"I am sorry, I havent heard about the currency: '{args[1]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
+                return f"I am sorry, I havent heard about the currency: '{args[0]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
         
         # TODO: Add flags
         # TODO: Add logging
@@ -333,48 +340,45 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
 
 
 def get_flags_and_arguments(arg: str) -> tuple[list[str], list[str]]:
-    """Parses a string into a list of arguments, and a list of flags
-
-    Args:
-        arg (str): Argument string; the user input
-
-    Returns:
-        tuple[list[str], list[str]]: list of arguments, list of flags
-    """
-    
     flags = []
-    
     args = []
-    
     s = ""
-    
     ant = 0
     
     # Iterates over each char in the str
     for c in arg:
-        # If we hit one of these, its the start of and argument
+        # If we hit one of these, it's the start of an argument
         if c == '"' or c == "'":
+            ant += 1
             if ant == 1:
-                args.append(s)
-                ant = 0
+                if s:
+                    args.append(s)
                 s = ""
-        # If we hit space, and ant is not 0, it means we're inside an argument, and should take the space
+        # If we hit space and ant is not 0, it means we're inside an argument and should take the space
         elif c == ' ' and ant != 0:
             s += c
-        # If we hit a space, and ant is 0, it means we've hit the end of either an argument, or a flag
-        elif c == ' ' and ant == 1:
-            # Means its a flag
-            if "--" in s[:2] or "-" in s[0]:
-                flags.append(s)
-                s = ""
-            else: # its an argumetn
+        # If we hit a space and ant is 0, it means we've hit the end of either an argument or a flag
+        elif c == ' ' and ant == 0:
+            # If it starts with a quote, it's an argument
+            if s.startswith("'") or s.startswith('"'):
                 args.append(s)
-                s = ""
+            # If it starts with -- or -, it's a flag
+            elif s.startswith("--") or s.startswith("-"):
+                flags.append(s)
+            # Otherwise, it's an argument
+            else:
+                args.append(s)
+            s = ""
         # Else, we keep adding c to s
         else:
             s += c
 
+    # If there's any remaining text in s after the loop, it's an argument
+    if s:
+        args.append(s)
+
     return args, flags
+
 
 
 def pretty_flag(flag: str, flags: list[str]) -> str:
