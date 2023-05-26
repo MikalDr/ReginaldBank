@@ -115,6 +115,8 @@ class Funds:
             keys = self.key_list
             keys.reverse()
             while needed_amount > 0:  
+                if(currency == Currency.Platinum):
+                    return False
                 needed_amount -= self.funds[currency]
                 self.funds[currency] = 0
                 higher_currency = keys[self.key_list.index(currency)+i]
