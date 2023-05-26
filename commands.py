@@ -293,7 +293,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         case "funds":
             
             if len(args) == 0:
-                return f"Here's our funds: {funds}", bag, funds, log
+                return f"Here's our funds: \n ```{funds} \nTotal Gold: {funds.funds_in('Gold')} ```", bag, funds, log
             
             c = args[1]
             
