@@ -1,4 +1,4 @@
 files/token.txt
 .vscode
-_pycache_
+__pycache__
 venv
