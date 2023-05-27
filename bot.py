@@ -4,6 +4,7 @@ import commands
 from bag_of_holding import BagOfHolding
 from funds import Funds
 from logger import Log
+from sessions import SessionManager
 import signal
 import sys
 
@@ -25,14 +26,15 @@ signal.signal(signal.SIGINT, pre_termination_proc)
 signal.signal(signal.SIGTERM, pre_termination_proc)
 
 async def send_message(username, message, user_message, is_private):
-    global BAG, FUNDS, LOG
+    global BAG, FUNDS, LOG, SM
     
     try:
         #response, _BAG, _FUNDS, _LOG = responses.handle_response(username, user_message, BAG, FUNDS, LOG)
-        response, _BAG, _FUNDS, _LOG = commands.parse_command(username, user_message, BAG, FUNDS, LOG)
+        response, _BAG, _FUNDS, _LOG, _SM = commands.parse_command(username, user_message, BAG, FUNDS, LOG, SM)
         BAG = _BAG
         FUNDS = _FUNDS
         LOG = _LOG
+        SM = _SM
         
         if not response:
             return
@@ -50,6 +52,8 @@ FUNDS.load_funds()
 
 LOG = Log()
 LOG.load_log()
+
+SM = SessionManager()
 
 def run_discord_bot():
     intents = discord.Intents.default()

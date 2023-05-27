@@ -8,6 +8,7 @@ Parses and executes commands given by the players
 from bag_of_holding import BagOfHolding, find_probable_approximations
 from funds import Funds, Currency, is_valid_currency
 from logger import Log
+from sessions import SessionManager
 import random
 
 CALL_COMMANDS = set(["reginald","regi", "rabbit", "hare"])
@@ -81,6 +82,12 @@ COMMANDS = {
         "example": "'regi help add' or 'help \"-dmg\"''",
         "flags": "",
         "info": "Displays this"
+    },
+    "session" : {
+        "args": "new <optional: session name> <optional: session date> / end <session name/session id> / get <optional: session name/session id/date>",
+        "example" : "'regi session new' or 'regi session end 0 or 'regi session get'",
+        "flags": "--user:username",
+        "info": "Creates a new session"
     }
 }
 
@@ -133,7 +140,7 @@ FLAGS = {
 }
 
 
-def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) -> tuple[str, BagOfHolding, Funds, Log]:
+def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log, sm: SessionManager()) -> tuple[str, BagOfHolding, Funds, Log, SessionManager]:
     
     
     p_message = message.lower().split(" ")
@@ -147,10 +154,10 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         greeting += "\n" 
     
     if p_message[0] not in CALL_COMMANDS: # Message does not start with "regi"
-        return "", bag, funds, log
+        return "", bag, funds, log, sm
     
     if len(p_message) == 1: # Message is not long enough, so just do a greeting instead.
-        return greeting, bag, funds, log
+        return greeting, bag, funds, log, sm
     
     # We start at 1, since the first word is always 'regi'
     cmd = p_message[1]
@@ -164,6 +171,10 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
     print(f"flags:'{flags}'")
     
     match cmd:
+        
+        case "session":
+            raise NotImplementedError
+        
         case "log":
             raise NotImplementedError
         
@@ -173,7 +184,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             
             # Player has only typed regi add
             if len(args) == 0:
-                return pretty_command("add", flags), bag, funds, log
+                return pretty_command("add", flags), bag, funds, log, sm
             
             m_money = args[0]
             
@@ -187,7 +198,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 # TODO: Implement logging, for funds
                 # TODO: Implement logging, for commands
                                 
-                return f"Added {money}{currency} to our funds", bag, funds, log
+                return f"Added {money}{currency} to our funds", bag, funds, log, sm
             else:
                 # Add item
                 
@@ -201,28 +212,28 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                     if len(args[1:]) >= 1:
                         amount = int(args[0])
                 except ValueError:
-                    return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
+                    return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log, sm
 
                 if len(args[2:]) >= 1:
                     raw_cost = args[1]
                     
                     # TODO: Fix edge case where user types '1g10p'
                     if not is_valid_currency("".join([c for c in raw_cost if not c.isdigit()])):
-                        return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
+                        return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log, sm
                     cost, currency = funds.parse_money_input(raw_cost)
 
                 try:
                     if len(args[3:]) >= 1:
                         weight = int(args[2])
                 except ValueError:
-                    return f"I am sorry, I haven't heard of the number '{args[2]}'", bag, funds, log
+                    return f"I am sorry, I haven't heard of the number '{args[2]}'", bag, funds, log, sm
                 
                 # TODO: Implement logging, for items
                 # TODO: Implement logging, for commands
                 
                 item = bag.add_new_item(item_name, amount, cost, currency, weight)
                 
-                return f"Added {str(item)} to our bag", bag, funds, log
+                return f"Added {str(item)} to our bag", bag, funds, log, sm
 
         # TODO: Add logging
         # TODO: Add flags
@@ -231,7 +242,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             
             # Player has only typed regi take
             if len(args) == 0:
-                return pretty_command("take", flags), bag, funds, log
+                return pretty_command("take", flags), bag, funds, log, sm
             
             m_money = args[0]
             
@@ -241,9 +252,9 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 money, currency = funds.parse_money_input(m_money)
                 
                 if funds.take_funds(money, currency):
-                    return f"Took {money} {currency} out of our funds.", bag, funds, log
+                    return f"Took {money} {currency} out of our funds.", bag, funds, log, sm
                 else:
-                    return f"We dont have enough {money} {currency} in our funds.", bag, funds, log
+                    return f"We dont have enough {money} {currency} in our funds.", bag, funds, log, sm
             # Take item
             
             # TODO: Implement id search, instead of just name
@@ -255,18 +266,18 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 if len(args[1:]) >= 1:
                     amount = int(args[0])
             except ValueError:
-                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
+                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log, sm
             
             item = bag.get_item(item_name=item_name)
             
             # If item is none, the given item was not found
             if item is not None:
                 if bag.remove_item(item, amount): # If remove_item returns true, the item was removed
-                    return f"Took {amount} instances of {item}, out of our bag.", bag, funds, log
+                    return f"Took {amount} instances of {item}, out of our bag.", bag, funds, log, sm
                 else:
-                    return f"Can't take {amount} instances of {item}, we only have {item.amount}", bag, funds, log
+                    return f"Can't take {amount} instances of {item}, we only have {item.amount}", bag, funds, log, sm
             else:
-                return f"I am sorry, I can't find '{item_name}'", bag, funds, log
+                return f"I am sorry, I can't find '{item_name}'", bag, funds, log, sm
         
         # TODO: Add logging
         # TODO: Add flags
@@ -275,7 +286,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
             
             # Player has only typed regi find
             if len(args) == 0:
-                return pretty_command("find", flags), bag, funds, log
+                return pretty_command("find", flags), bag, funds, log, sm
             
             item_name = args[0]
             amount = 1
@@ -285,14 +296,14 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 if len(args[1:]) >= 1:
                     amount = int(args[0])
             except ValueError:
-                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log
+                return f"I am sorry, I haven't heard of the number '{args[0]}'", bag, funds, log, sm
             
             item = bag.get_item(item_name=item_name)
             
             if item is not None:
-                return f"Found {item.item_name}, here's some information about it:\n{item.get_long_name()}", bag, funds, log
+                return f"Found {item.item_name}, here's some information about it:\n{item.get_long_name()}", bag, funds, log, sm
             else:
-                return f"I am sorry, I can't find '{item_name}'", bag, funds, log
+                return f"I am sorry, I can't find '{item_name}'", bag, funds, log, sm
         
         # TODO: Add logging
         # TODO: Add flags
@@ -300,27 +311,27 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         case "funds" | "fund" | "gold":
             
             if len(args) == 0:
-                return f"Here's our funds:```{funds}``````Total Gold: {funds.funds_in(Currency.Gold)}```", bag, funds, log 
+                return f"Here's our funds:```{funds}``````Total Gold: {funds.funds_in(Currency.Gold)}```", bag, funds, log, sm 
             
             c = args[0]
             
             if is_valid_currency(c):
                 _, currency = funds.parse_money_input(f"0{c}")
-                return f"Here's our funds in {str(currency).lower()}:```{funds.funds_in(currency)} {currency}```", bag, funds, log
+                return f"Here's our funds in {str(currency).lower()}:```{funds.funds_in(currency)} {currency}```", bag, funds, log, sm
             else:
-                return f"I am sorry, I havent heard about the currency: '{args[0]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
+                return f"I am sorry, I havent heard about the currency: '{args[0]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log, sm
         
         # TODO: Add flags
         # TODO: Add logging
         # Displays the bag
         case "bag":
-            return f"Here's our bag: {bag.get_all_items_short()}", bag, funds, log
+            return f"Here's our bag: {bag.get_all_items_short()}", bag, funds, log, sm
 
         # TODO: Add flags
         # TODO: Add logging
         case "help":
             if len(args) == 0:
-                return "\n".join([pretty_command(c, flags) for c in COMMANDS.keys()]), bag, funds, log
+                return "\n".join([pretty_command(c, flags) for c in COMMANDS.keys()]), bag, funds, log, sm
             
             msg = []
             
@@ -332,10 +343,10 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
                 else:
                     msg.append(f"I have no knowledge about: '{ar}'")
             
-            return "\n".join(msg), bag, funds, log
+            return "\n".join(msg), bag, funds, log, sm
             
         case _:
-            return f"I am sorry, I did not understand what you meant by '{p_message[1:]}', use 'help' to get all commands", bag, funds, log
+            return f"I am sorry, I did not understand what you meant by '{p_message[1:]}', use 'help' to get all commands", bag, funds, log, sm
 
 
 
