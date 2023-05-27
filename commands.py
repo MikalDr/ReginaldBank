@@ -140,7 +140,7 @@ FLAGS = {
 }
 
 
-def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log, sm: SessionManager()) -> tuple[str, BagOfHolding, Funds, Log, SessionManager]:
+def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log, sm: SessionManager) -> tuple[str, BagOfHolding, Funds, Log, SessionManager]:
     
     
     p_message = message.lower().split(" ")
