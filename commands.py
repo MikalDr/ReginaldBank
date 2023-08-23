@@ -11,7 +11,7 @@ from logger import Log
 import random
 
 CALL_COMMANDS = set(["reginald","regi", "rabbit", "hare"])
-PLAYER_TAGS = {"4993":"Zenith", "0492":"Scorch", "9933":"me", "2418":"Kerke", "8705":"Halfdan", "9521":"Marxson", "8054": "Strange Godlike Being"}
+PLAYER_TAGS = {"solartnt#0":"Zenith", "asmunudr#0":"Scorch", "mikaldr#0":"me", "neelzee#0":"Kerke", "thobla#0":"Halfdan", "kaspeti#0":"Marxson", "morago#0": "Strange Godlike Being"}
 
 SCORCH_GREETINGS = ["Please be careful today Scorch, i do not like my hair scorched...", "Scorch! stay away with that blasted fire!", "Note that i like my hair, not burnt", "I'll forgive you this once since you're but a child"]
 
@@ -137,7 +137,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
     
     
     p_message = message.lower().split(" ")
-    tag = username.split("#")[1]
+    tag = username
     name = PLAYER_TAGS.get(tag)
     greeting = ""
     
@@ -293,13 +293,13 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         case "funds":
             
             if len(args) == 0:
-                return f"Here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
+                return f"Here is our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
             
             c = args[1]
             
             if is_valid_currency(c):
                 _, currency = funds.parse_money_input(f"0{c}")
-                return f"Here's our funds in {str(currency).lower()}: {funds.funds_in(currency)}", bag, funds, log
+                return f"Here is our funds in {str(currency).lower()}: {funds.funds_in(currency)}", bag, funds, log
             else:
                 return f"I am sorry, I havent heard about the currency: '{args[1]}', but here's our funds in gold: {funds.funds_in(Currency.Gold)}", bag, funds, log
         
@@ -307,7 +307,7 @@ def parse_command(username, message, bag: BagOfHolding, funds: Funds, log: Log) 
         # TODO: Add logging
         # Displays the bag
         case "bag":
-            return f"Here's our bag: {bag.get_all_items_short()}", bag, funds, log
+            return f"Here is our bag: {bag.get_all_items_short()}", bag, funds, log
 
         # TODO: Add flags
         # TODO: Add logging

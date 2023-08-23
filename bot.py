@@ -4,8 +4,10 @@ import commands
 from bag_of_holding import BagOfHolding
 from funds import Funds
 from logger import Log
+from buttons import MainView
 import signal
 import sys
+from config import Config
 
 TOKEN = open("files/token.txt").read()
 
@@ -25,7 +27,8 @@ signal.signal(signal.SIGINT, pre_termination_proc)
 signal.signal(signal.SIGTERM, pre_termination_proc)
 
 async def send_message(username, message, user_message, is_private):
-    global BAG, FUNDS, LOG
+
+    global BAG, FUNDS, LOG, CONFIG
     
     try:
         #response, _BAG, _FUNDS, _LOG = responses.handle_response(username, user_message, BAG, FUNDS, LOG)
@@ -33,11 +36,20 @@ async def send_message(username, message, user_message, is_private):
         BAG = _BAG
         FUNDS = _FUNDS
         LOG = _LOG
-        await message.author.send(response) if is_private else await message.channel.send(response)
+        if(user_message == "regi init"):
+            CONFIG.add_channel(message.channel.name)
+            await message.channel.send(f'Greetings! I am Reginald-Bot. \nI will try to assist you with your needs.\nTo start a conversation with me, please type "hi regi"')
+            await message.delete()
+        if(user_message == "hi regi"):
+            await message.channel.send(f"Hi {username}! what do you wish for?", view=MainView(), delete_after=240.0)
+            await message.delete()
         print("channel |",message.channel)
     except Exception as e:
         print(e)
-        
+
+CONFIG = Config()
+CONFIG.load_config()
+
 BAG = BagOfHolding()    
 BAG.load_items()
 
