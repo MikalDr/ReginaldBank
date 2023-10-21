@@ -2,21 +2,21 @@
 A simple discord bot to track a dnd party's fund
 
 Todo:
-- [x] Bag of Holding ( Items Nils)
-- [x] Currency (Mikal)
+- [ ] Bag of Holding ( Items Nils)
+- [ ] Currency (Mikal)
 - [ ] Leaderboard
-- [X] Log
+- [ ] Log
     - [ ] `regi log` Display list of `<session_id> <date>` for the different partitions of the log
     - [ ] `regi log <session>` Select days/session you want to display log off.
     - [ ] `regi log all` Display whole log.
 - [ ] Commands
-    - [v] Bot does not respond to callname properly.
-    - [v] Simplify commands.
-        - [v] `regi add` Adds an item, or gold, depends on if a word has been specified.
-        - [v] `regi funds` shows the current partyfunds.
-        - [v] `regi bag` shows the items in the bag
-        - [v] `regi find` finds an item, if it exists
-        - [v] `regi take` Takes an item or money
+    - [ ] Bot does not respond to callname properly.
+    - [ ] Simplify commands.
+        - [ ] `regi add` Adds an item, or gold, depends on if a word has been specified.
+        - [ ] `regi funds` shows the current partyfunds.
+        - [ ] `regi bag` shows the items in the bag
+        - [ ] `regi find` finds an item, if it exists
+        - [ ] `regi take` Takes an item or money
         - [ ] `-i` flag to not log the command
         - [ ] `-t` flag to not execute or log the command, prints the effects of the command
         - [ ] `-h` flag to explain the given command
