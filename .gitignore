@@ -1,8 +1,2 @@
-files/token.txt
-.vscode
-_pycache_
-venv
-
-# Added by cargo
-
-/target
+node_modules
+dist
