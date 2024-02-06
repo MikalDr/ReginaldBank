@@ -3,7 +3,8 @@
 
 use once_cell::sync::Lazy;
 use reginald::{item::RegiItem, Reginald};
-use tauri::async_runtime::Mutex;
+use setup::desetup;
+use tauri::{async_runtime::Mutex, RunEvent};
 
 mod reginald;
 
@@ -23,15 +24,19 @@ async fn main() {
     } else {
         println!("Setup complete");
     }
-    // WTF?
-    // let _ = setup::desetup().await;
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_bof])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-    if let Err(err) = setup::desetup().await {
-        eprintln!("Failed desetup: {}", err);
-    } else {
-        println!("Desetup complete");
-    }
+        .build(tauri::generate_context!())
+        .expect("Error building app")
+        .run(move |_, event| match event {
+            RunEvent::ExitRequested { .. } => {
+                if let Err(e) = desetup() {
+                    eprintln!("Failed destup: {}", e);
+                } else {
+                    println!("Finished desetup");
+                }
+            }      
+            _ => {}
+        });
+
 }

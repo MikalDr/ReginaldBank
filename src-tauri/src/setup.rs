@@ -3,6 +3,8 @@ use std::{
     io::Write,
 };
 
+use tokio::runtime::Runtime;
+
 use crate::{
     reginald::{coin::Denomination, item::RegiItem, Reginald},
     REGINALD,
@@ -23,7 +25,7 @@ pub async fn setup() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub async fn desetup() -> Result<(), std::io::Error> {
+pub async fn desetup_async() -> Result<(), std::io::Error> {
     let regi = REGINALD.lock().await.clone();
     let mut file = File::create(PATH)?;
 
@@ -34,4 +36,9 @@ pub async fn desetup() -> Result<(), std::io::Error> {
     }
 
     Ok(())
+}
+
+pub fn desetup() -> Result<(), std::io::Error> {
+    let rt = Runtime::new()?;
+    rt.block_on(desetup_async())
 }
