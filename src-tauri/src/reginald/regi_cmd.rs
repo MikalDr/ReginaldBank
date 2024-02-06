@@ -66,7 +66,6 @@ impl RegiCmd {
                 if let Some(item) = RegiItem::parse(&rem) {
                     return Some(Self::Take(Err(item), flgs));
                 }
-
                 None
             }
             _ => None,
