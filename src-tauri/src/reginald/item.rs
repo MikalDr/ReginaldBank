@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::coin::Denomination;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegiItem {
     name: String,
     desc: Option<String>,

@@ -1,8 +1,8 @@
-use std::ops::Add;
+use std::ops::{Add, AddAssign};
 
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub enum Denomination {
     Copper(i32),
     Silver(i32),
@@ -11,7 +11,29 @@ pub enum Denomination {
     Platinum(i32),
 }
 
+impl Serialize for Denomination {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("coin", 2)?;
+        state.serialize_field("denomination", &self.to_string())?;
+        state.serialize_field("val", &self.val())?;
+        state.end()
+    }
+}
+
 impl Denomination {
+    pub fn to_string(&self) -> String {
+        match self {
+            Denomination::Copper(_) => "Copper".to_string(),
+            Denomination::Silver(_) => "Silver".to_string(),
+            Denomination::Gold(_) => "Gold".to_string(),
+            Denomination::Electrum(_) => "Electrum".to_string(),
+            Denomination::Platinum(_) => "Platinum".to_string(),
+        }
+    }
+
     pub fn new(coin: &Denomination, val: i32) -> Self {
         match coin {
             Denomination::Copper(_) => Denomination::Copper(val),
@@ -90,5 +112,13 @@ impl Add for Denomination {
 
     fn add(self, rhs: Self) -> Self::Output {
         Denomination::new(&self, self.val() + self.convert(rhs).val())
+    }
+}
+
+impl Add<i32> for Denomination {
+    type Output = Self;
+
+    fn add(self, rhs: i32) -> Self::Output {
+        Denomination::new(&self, self.val() + rhs)
     }
 }
