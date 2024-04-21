@@ -1,0 +1,43 @@
+command = {
+	( ^"log" ~ " " ~ ( '0'..'9'+ | date | "all" ) ~ flag? )
+	| ( ^"log" ~ " " ~ flag )
+    | ( ^"log" )
+    | ( ^"add" ~ " " ~ ( item | gold ) ~ flag?)
+}
+
+item = { ( ASCII_DIGIT+ ~ item_flag* ) }
+
+item_flag = {
+	( ^"-d" ~ " " ~ ASCII_DIGIT+ )
+    | ( ^"-c" ~ " " ~ gold )
+    | ( ^"-n" ~ " " ~ ( "0" | '0'..'9'+ ) )
+}
+
+gold = { ( ( "0" | '0'..'9'+ ) ~ gold_ident? ) }
+
+gold_ident = {
+	( ^"g" ) | ( ^"gp" ) | ( ^"gold" )
+    | ( ^"s" ) | ( ^"sp" ) | ( ^"silver" )
+    | ( ^"c" ) | ( ^"cp" ) | ( ^"copper" )
+    | ( ^"e" ) | ( ^"ep" ) | ( ^"electrum" )
+    | ( ^"p" ) | ( ^"pp" ) | ( ^"platinum" )
+}
+
+date = { 
+	( '0'..'9'+ ~ "-" ~ '0'..'9'+ ~ "-" ~ '0'..'9'+ ) 
+    | ( '0'..'9'+ ~ "." ~ '0'..'9'+ ~ "." ~ '0'..'9'+ )
+    | ( '0'..'9'+ ~ "/" ~ '0'..'9'+ ~ "/" ~ '0'..'9'+ )
+}
+
+flag = {
+	( ^"-h" ) | ( "--help" )
+}
+
+bot = {
+	( ^"!reginald" )
+	| ( ^"!regi" )
+    | ( ^"!hare" )
+}
+
+
+input = { bot ~ " " ~ command | bot }
