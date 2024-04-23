@@ -14,4 +14,5 @@ pest_derive = "2.7.9"
 serde = { version = "1.0.198", features = ["derive"] }
 serde_json = "1.0.116"
 serenity = "0.12.1"
+time = "0.3.36"
 tokio = { version = "1.37.0", features = ["full"]}

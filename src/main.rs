@@ -18,7 +18,10 @@ impl EventHandler for Handler {
     // Event handlers are dispatched through a threadpool, and so multiple events can be
     // dispatched simultaneously.
     async fn message(&self, ctx: Context, msg: Message) {
-        let _ = command_parser(ctx, msg).await;
+        let err = command_parser(ctx, msg).await;
+        if err.is_err() {
+            println!("{err:?}");
+        }
     }
 
     // Set a handler to be called on the `ready` event. This is called when a shard is booted, and

@@ -1,3 +1,6 @@
+
+input = { bot ~ command ~ ( flag_affix ~ flag )? }
+
 command = {
 	log_cmd
     | add_cmd
@@ -7,22 +10,40 @@ command = {
     | take_cmd
 }
 
-log_cmd = { ( ^"log" ~ " " ~ ( date | "all" | '0'..'9'+ ) ~ flag? ) }
-add_cmd = { ( ^"add" ~ " " ~ ( money | item ) ~ flag? ) }
-funds_cmd = { ( ^"funds" ~ " " ~ flag? ) }
-bag_cmd = { ( ^"bag" ~ " " ~ flag? ) }
-find_cmd = { ( ^"find" ~ " " ~ flag? ) }
-take_cmd = { ( ^"take" ~ " " ~ flag? ) }
+WHITESPACE = _{ " " }
 
-item = { ( ASCII_DIGIT+ ~ item_flag* ) }
+log_all = { ( ^"all" ) } 
+session_nr = { ( '0'..'9'+ ~ "s" ) }
 
-item_flag = {
-	( ^"-d" ~ " " ~ ASCII_DIGIT+ )
-    | ( ^"-c" ~ " " ~ money )
-    | ( ^"-n" ~ " " ~ ( "0" | '0'..'9'+ ) )
-}
+log_cmd = { ( ^"log" ~ ( date | log_all | session_nr ) ) }
+add_cmd = { ( ^"add" ~ ( money+ | item ~ ( "|" ~ item )* ) ) }
+funds_cmd = { ( ^"funds" ) }
+bag_cmd = { ( ^"bag" ) }
+find_cmd = { ( ^"find" ~ item ~ ( "|" ~ item )* ) }
+take_cmd = { ( ^"take" ~ ( money+ | item ~ ( "|" ~ item )* ) ) }
 
-money = { ( ( "0" | '0'..'9'+ ) ~ currency_ident? ) }
+SEPERATOR = { ( "\"" ) }
+
+item = { ( item_name ~
+	(
+    item_description
+    | item_count
+    | item_cost
+    | item_tag
+    )*  
+) }
+
+word = { ASCII_ALPHANUMERIC* }
+
+item_name = { ( "\"" ~ word ~ "\"" ) }
+item_description = { ( "\"" ~ word ~ "\"" ) }
+item_cost = { ( money ) }
+item_count = { ( ^"0x" | '1'..'9' ~ ( '0'..'9' )* ~ ^"x" ) | ( ^"x0" | ^"x" ~ '1'..'9' ~ ( '0'..'9' )* ) }
+item_tag = { ( ^"-tag=" ~ "\"" ~ word ~ "\"" ) }
+
+money = { ( currency_value ~ currency_ident? ) }
+
+currency_value = { ( "0" | '1'..'9' ~ ( '0'..'9' )* ) }
 
 currency_ident = {
 	gold_ident
@@ -32,21 +53,26 @@ currency_ident = {
     | platinum_ident
 }
 
-copper_ident = { ( ^"c" ) | ( ^"cp" ) | ( ^"copper" ) }
-silver_ident = { ( ^"s" ) | ( ^"sp" ) | ( ^"silver" ) }
-gold_ident = { ( ^"g" ) | ( ^"gp" ) | ( ^"gold" ) }
-electrum_ident = { ( ^"e" ) | ( ^"ep" ) | ( ^"electrum" ) }
-platinum_ident = { ( ^"p" ) | ( ^"pp" ) | ( ^"platinum" ) }
+copper_ident = { ( ^"cp" ) | ( ^"copper" ) | ( ^"c" ) }
+silver_ident = { ( ^"sp" ) | ( ^"silver" ) | ( ^"s" ) }
+gold_ident = { ( ^"gp" ) | ( ^"gold" ) | ( ^"g" ) }
+electrum_ident = { ( ^"ep" ) | ( ^"electrum" ) | ( ^"e" ) }
+platinum_ident = { ( ^"pp" ) | ( ^"platinum" ) | ( ^"p" ) }
 
 date = { 
-	( '0'..'9'+ ~ "-" ~ '0'..'9'+ ~ "-" ~ '0'..'9'+ ) 
-    | ( '0'..'9'+ ~ "." ~ '0'..'9'+ ~ "." ~ '0'..'9'+ )
-    | ( '0'..'9'+ ~ "/" ~ '0'..'9'+ ~ "/" ~ '0'..'9'+ )
+	( date_day ~ date_sep ~ date_month ~ date_sep ~ date_year ) 
 }
 
+date_sep = { "." | "-" | "/" }
+date_day = { ( ( "0" )? ~ '1'..'9' | '1'..'3' ~ '0'..'9' ) }
+date_month = { ( "10" | "11" | "12" | ( "0" )? ~ '1'..'9' ) }
+date_year = { ( '0'..'9'{ 4 } | ( '0'..'9' ~ '0'..'9' ) ) }
+
 flag = {
-	( ^"-h" ) | ( "--help" )
+	( ^"h" ) | ( ^"help" )
 }
+
+flag_affix = { ( "-" | "--" ) }
 
 bot = {
 	( ^"!reginald" )
@@ -54,5 +80,3 @@ bot = {
     | ( ^"!hare" )
 }
 
-
-input = { bot ~ " " ~ command | bot }
