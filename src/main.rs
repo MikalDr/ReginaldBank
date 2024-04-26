@@ -5,6 +5,7 @@ use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::prelude::*;
 
+mod bag;
 mod cmd;
 
 use crate::cmd::command_parser;
@@ -37,7 +38,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let token = env::var("DISCORD_TOKEN").unwrap_or(";)".to_string());
+    let token = env::var("DISCORD_TOKEN").expect(";)");
     // Set gateway intents, which decides what events the bot will be notified about
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
