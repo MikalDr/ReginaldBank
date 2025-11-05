@@ -3,6 +3,27 @@ name = "ReginaldBank"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["reginald_ast", "reginald_conf", "reginald_discord"]
 
 [dependencies]
+reginald_ast = { workspace = true }
+reginald_discord = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+reginald_conf = { workspace = true }
+
+[workspace.dependencies]
+anyhow = "1.0.100"
+pest = "2.8.3"
+pest_derive = "2.8.3"
+rand = "0.9.2"
+rstest = "0.26.1"
+serde = "1.0.228"
+toml = "0.9.8"
+serenity = "0.12.4"
+tokio = { version = "1.48.0" }
+reginald_ast = { path = "reginald_ast" }
+reginald_discord = { path = "reginald_discord" }
+reginald_conf = { path = "reginald_conf" }
+sqlite = "0.37.0"

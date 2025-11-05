@@ -6,3 +6,5 @@ venv
 # Added by cargo
 
 /target
+.idea
+reginald_db

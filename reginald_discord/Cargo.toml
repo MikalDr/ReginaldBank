@@ -1,0 +1,12 @@
+[package]
+name = "reginald_discord"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serenity = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+reginald_ast = { workspace = true }
+sqlite = { workspace = true }
+reginald_conf = { workspace = true }
