@@ -12,7 +12,7 @@ mod tests;
 #[grammar = "../grammar/base.pest"]
 #[grammar = "../grammar/reginald.pest"]
 #[grammar_inline = r#"
-command = { funds ~ expr? | calc ~ expr }
+command = { funds ~ expr? | calc ~ expr | help | roll }
 program = { SOI ~ command+ ~ EOI }
 "#]
 pub struct ReginaldParser;

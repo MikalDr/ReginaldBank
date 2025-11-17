@@ -23,6 +23,7 @@ pub fn typecheck(ast: ReginaldAST) -> Result<TypedAST> {
             Ok(TypedAST::Calc(expr))
         }
         ReginaldAST::Roll(s, e) => Ok(TypedAST::Roll(s, e)),
+        ReginaldAST::Help => Ok(TypedAST::Help),
     }
 }
 

@@ -10,6 +10,7 @@ pub enum ReginaldAST {
     FundsCalc(Expr),
     Calc(Expr),
     Roll(usize, usize),
+    Help,
 }
 
 #[derive(Debug, Clone)]

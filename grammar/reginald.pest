@@ -1,4 +1,5 @@
-funds = { "funds" ~ ("add" | "a" | "rem" | "rm" | "take")? }
-calc = { "calc" }
-roll = { "roll" ~ (dice | ASCII_DIGIT+)? }
-dice = { "d20" | "d12" | "d10" | "d8" | "d6" | "d4" | "d100" }
+funds = { ^"funds" ~ (^"add" | ^"a" | ^"rem" | ^"rm" | ^"take")? }
+calc = { ^"calc" }
+roll = { ^"roll" ~ (dice | ASCII_DIGIT+)? }
+dice = { ^"d20" | ^"d12" | ^"d10" | ^"d8" | ^"d6" | ^"d4" | ^"d100" }
+help = { ^"help" | ^"h" }

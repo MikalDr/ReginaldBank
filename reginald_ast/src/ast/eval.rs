@@ -11,8 +11,10 @@ use crate::{
 };
 use anyhow::Result;
 use pest::Parser;
-use rand::{rng, seq::IteratorRandom};
+use rand::{Rng, rng, seq::IteratorRandom};
 use std::ops::Neg;
+
+const HELP_MENU: &str = include_str!("../../../grammar/grammar_docs.md");
 
 pub fn evaluate(msg: &str, env: ReginaldEnv) -> Result<ReginaldEnv> {
     let pairs = ReginaldParser::parse(Rule::program, msg)?;
@@ -25,15 +27,24 @@ pub fn eval(ast: TypedAST, env: ReginaldEnv) -> Result<ReginaldEnv> {
     match ast {
         TypedAST::FundsChange(expr) => {
             let value = eval_expr(expr, &env)?;
-            Ok(env.add(value))
+            env.checked_add(value)
         }
         TypedAST::Funds => {
             let funds = env.funds();
-            Ok(env.print(funds))
+            if funds.is_empty() {
+                Ok(env.print("No funds"))
+            } else {
+                Ok(env.print(funds))
+            }
         }
         TypedAST::Calc(expr) => {
             let result = eval_expr(expr, &env)?;
             Ok(env.print(format!("Calc: {:?}", result.get_value())))
+        }
+        TypedAST::Help => Ok(env.print(HELP_MENU)),
+        TypedAST::Roll(min, max) => {
+            let result = rng().random_range(min..=max);
+            Ok(env.print(format!("Rolling D{max}... {result}")))
         }
         _ => panic!("No eval for {ast:?}"),
     }

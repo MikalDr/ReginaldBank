@@ -6,6 +6,7 @@ use crate::{ReginaldParser, Rule};
 use pest::Parser;
 
 mod piece_test;
+mod basic_cmds;
 
 const TEST_FUNDS_EXAMPLE: &str = include_str!("../../.././grammar/examples/funds-example");
 const TEST_EVAL_EXAMPLE: &str = include_str!("../../.././grammar/examples/eval-example");

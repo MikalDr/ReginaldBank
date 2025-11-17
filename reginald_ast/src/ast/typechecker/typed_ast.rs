@@ -5,6 +5,7 @@ use crate::ast::base::money::Denomination;
 #[derive(Debug)]
 pub enum TypedAST {
     Funds,
+    Help,
     FundsChange(TypedExpr),
     FundsCalc(TypedExpr),
     Calc(TypedExpr),
@@ -18,12 +19,6 @@ pub enum TypedExpr {
     Val(i64, Denomination),
     Lit(f32),
     Die(usize, usize),
-}
-
-impl TypedExpr {
-    pub fn type_eq(&self, other: &Self) -> bool {
-        todo!()
-    }
 }
 
 #[derive(Debug)]
@@ -42,6 +37,20 @@ pub enum Value {
 }
 
 impl Value {
+    pub fn unmake(self) -> (f32, Denomination) {
+        match &self {
+            Value::Piece(val, denomination) => (*val as f32, *denomination),
+            _ => (self.get_value(), Denomination::Gold),
+        }
+    }
+
+    pub fn get_value_unexchanged(self) -> f32 {
+        match self {
+            Value::Piece(val, _) | Value::Int(val) => val as f32,
+            Value::Float(val) => val,
+        }
+    }
+
     pub fn get_value(self) -> f32 {
         match self {
             Value::Piece(val, denomination) => denomination.exchange(Denomination::Gold)(val),

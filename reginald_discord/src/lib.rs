@@ -50,7 +50,7 @@ impl DiscordHandle {
         while let Ok(State::Row) = stmt.next() {
             let denomination = stmt.read::<String, _>("item")?;
             let count = stmt.read::<i64, _>("count")?;
-            env = env.add(Value::Piece(count, Denomination::from_str(&denomination)?));
+            env = env.checked_add(Value::Piece(count, Denomination::from_str(&denomination)?))?;
         }
 
         Ok(env)

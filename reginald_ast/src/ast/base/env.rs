@@ -1,4 +1,5 @@
 use crate::ast::{base::money::Denomination, typechecker::typed_ast::Value};
+use anyhow::{Result, anyhow};
 
 #[derive(Debug, Default, Clone)]
 pub struct ReginaldEnv {
@@ -11,42 +12,68 @@ pub struct ReginaldEnv {
 }
 
 impl ReginaldEnv {
+    pub fn print_out(&mut self) {
+        for l in &self.output {
+            println!("{l}");
+        }
+        self.output.clear();
+    }
+
     pub fn output(&self) -> Vec<String> {
         self.output.clone()
     }
 
-    pub fn add(self, funds: Value) -> Self {
-        match funds {
-            Value::Piece(val, denomination) => match denomination {
-                Denomination::Platinum => Self {
-                    pp: self.pp + val,
-                    ..self
-                },
-                Denomination::Electrum => Self {
-                    ep: self.ep + val,
-                    ..self
-                },
-                Denomination::Gold => Self {
-                    gp: self.gp + val,
-                    ..self
-                },
-                Denomination::Silver => Self {
-                    sp: self.sp + val,
-                    ..self
-                },
-                Denomination::Copper => Self {
-                    cp: self.cp + val,
-                    ..self
-                },
-            },
-            Value::Int(val) => Self {
-                gp: self.gp + val,
-                ..self
-            },
-            Value::Float(val) => Self {
-                gp: self.gp + val.round() as i64,
-                ..self
-            },
+    pub fn checked_add(self, funds: Value) -> Result<Self> {
+        let (val, den) = funds.unmake();
+        if val.fract() != 0f32 {
+            return Err(anyhow!("Cannot have fractional values: {val:?}"));
+        }
+        let val = val as i64;
+        match den {
+            Denomination::Platinum => {
+                let pp = self.pp + val;
+                if pp < 0 {
+                    Err(anyhow!("Cannot have negative money"))
+                } else {
+                    Ok(Self { pp, ..self })
+                }
+            }
+            Denomination::Electrum => {
+                let ep = self.ep + val;
+
+                if ep < 0 {
+                    Err(anyhow!("Cannot have negative money"))
+                } else {
+                    Ok(Self { ep, ..self })
+                }
+            }
+            Denomination::Gold => {
+                let gp = self.gp + val;
+
+                if gp < 0 {
+                    Err(anyhow!("Cannot have negative money"))
+                } else {
+                    Ok(Self { gp, ..self })
+                }
+            }
+            Denomination::Silver => {
+                let sp = self.sp + val;
+
+                if sp < 0 {
+                    Err(anyhow!("Cannot have negative money"))
+                } else {
+                    Ok(Self { sp, ..self })
+                }
+            }
+            Denomination::Copper => {
+                let cp = self.cp + val;
+
+                if cp < 0 {
+                    Err(anyhow!("Cannot have negative money"))
+                } else {
+                    Ok(Self { cp, ..self })
+                }
+            }
         }
     }
 

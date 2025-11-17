@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 use std::{
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Sub},
     str::FromStr,
 };
 
@@ -106,22 +106,6 @@ impl Sub for Money {
             sp: self.sp - rhs.sp,
             cp: self.cp - rhs.cp,
         }
-    }
-}
-
-impl Mul for Money {
-    type Output = Result<Self>;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Neg for Money {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        todo!()
     }
 }
 

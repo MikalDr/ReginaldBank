@@ -7,8 +7,8 @@ edition = "2021"
 members = ["reginald_ast", "reginald_conf", "reginald_discord"]
 
 [dependencies]
-reginald_ast = { workspace = true }
-reginald_discord = { workspace = true }
+reginald_ast = { workspace = true, optional = true, features = ["repl"] }
+reginald_discord = { workspace = true, optional = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 reginald_conf = { workspace = true }
@@ -27,3 +27,8 @@ reginald_ast = { path = "reginald_ast" }
 reginald_discord = { path = "reginald_discord" }
 reginald_conf = { path = "reginald_conf" }
 sqlite = "0.37.0"
+
+[features]
+default = ["discord"]
+repl = ["dep:reginald_ast"]
+discord = ["dep:reginald_ast", "dep:reginald_discord"]

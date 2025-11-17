@@ -11,18 +11,25 @@ pub fn repl() -> Result<()> {
     let stdin = io::stdin();
     let mut stdout = io::stdout();
     let mut env = ReginaldEnv::default();
+    println!("=== Welcome to ReginaldREPL ===");
+    println!();
+    println!("Commands | Effect");
+    println!("q | Quits the repl");
+    println!("r | Reloads the environment");
+    println!();
+    println!("These are REPL commands, to show Reginald's commands, type 'help'");
     loop {
         print!("> ");
         stdout.flush()?;
         stdin.read_line(&mut buffer)?;
-        match foobar(buffer.trim(), &env) {
+        match eval_env(buffer.trim(), &env) {
             Ok(new_env) => {
                 env = new_env;
             }
             Err(err) => {
                 let dbg_cmd = buffer.trim().to_ascii_lowercase();
                 match dbg_cmd.as_str() {
-                    "q!" | "q" => break,
+                    "q!" | "q" | ":q" => break,
                     "r" => env = ReginaldEnv::default(),
                     "dbg" => println!("{env:?}"),
                     _ => eprintln!("> Error: {err:?}"),
@@ -30,12 +37,13 @@ pub fn repl() -> Result<()> {
             }
         }
         buffer.clear();
+        env.print_out();
     }
 
     Ok(())
 }
 
-fn foobar(input: &str, env: &ReginaldEnv) -> Result<ReginaldEnv> {
+fn eval_env(input: &str, env: &ReginaldEnv) -> Result<ReginaldEnv> {
     let pairs = ReginaldParser::parse(Rule::program, input)?;
     let ast = rules_to_ast(pairs)?;
     let typed_ast = typecheck(ast)?;

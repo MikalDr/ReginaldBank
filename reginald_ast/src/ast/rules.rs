@@ -11,8 +11,10 @@ pub fn rules_to_ast(mut pairs: Pairs<Rule>) -> Result<ReginaldAST> {
         Some(pair_rule) => match pair_rule.as_rule() {
             Rule::unit | Rule::program | Rule::command => rules_to_ast(pair_rule.into_inner()),
             Rule::funds => {
+                let removes = &pairs.peek().is_some_and(|p| p.as_str().contains("take"));
                 let _ = pairs.next();
                 match pairs.next().map(|pair| pair.into_inner()) {
+                    Some(expr) if *removes => Ok(ReginaldAST::FundsChange(Expr::Neg(Box::new(rules_to_expr(expr)?)))),
                     Some(expr) => Ok(ReginaldAST::FundsChange(rules_to_expr(expr)?)),
                     None => Ok(ReginaldAST::Funds),
                 }
@@ -22,12 +24,36 @@ pub fn rules_to_ast(mut pairs: Pairs<Rule>) -> Result<ReginaldAST> {
                 let expr = rules_to_expr(pairs)?;
                 Ok(ReginaldAST::Calc(expr))
             }
+            Rule::help => Ok(ReginaldAST::Help),
+            Rule::roll => {
+                let pair = pairs.next().unwrap();
+                let (min, max) = parse_dice_rule(pair.into_inner());
+                Ok(ReginaldAST::Roll(min, max))
+            }
             #[allow(unreachable_patterns)]
             _ => {
                 dbg!(&pairs);
                 panic!("Unhandled rule: {:?}", pairs.as_str())
             }
         },
+    }
+}
+
+fn parse_dice_rule(mut pairs: Pairs<Rule>) -> (usize, usize) {
+    let pair = pairs.next().unwrap();
+    match pair.as_rule() {
+        Rule::dice => match pair.as_str() {
+            "d2" => (1, 2),
+            "d4" => (1, 4),
+            "d6" => (1, 6),
+            "d8" => (1, 8),
+            "d10" => (1, 10),
+            "d12" => (1, 12),
+            "d20" => (1, 20),
+            "d100" => (1, 100),
+            _ => panic!("Unexpected die: {pairs:?}"),
+        },
+        _ => panic!("Unexpected rule on parse dice: {pairs:?}"),
     }
 }
 
