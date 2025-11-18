@@ -1,0 +1,1 @@
+INSERT INTO "character" (playername, class) VALUES (:name, :class);

@@ -1,0 +1,17 @@
+[players.Scorch]
+class = "Sorcerer"
+
+[players.Zenith]
+class = "Druid"
+
+[players.Marxson]
+class = "Cleric"
+
+[players.Fluffinside]
+class = "Rogue"
+
+[players.Reginald]
+class = "Monk"
+
+[dm]
+user = "Morago"

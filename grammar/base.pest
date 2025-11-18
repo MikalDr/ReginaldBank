@@ -1,0 +1,27 @@
+num   = { ("+" | "-")? ~ ASCII_DIGIT+ }
+float = { ("+" | "-")? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+  ~ ^"f"? | ^"f") }
+
+unit  = { platinum | electrum | gold | silver | copper }
+money = { num ~ unit }
+
+lit = { money | float | num }
+
+platinum = { ^"pp" | ^"p" }
+electrum = { ^"el" | ^"ep" | ^"e" }
+gold     = { ^"gp" | ^"g" }
+silver   = { ^"sp" | ^"s" }
+copper   = { ^"cp" | ^"c" }
+
+operation = _{ add | subtract | multiply | divide }
+    add      = { "+" }
+    subtract = { "-" }
+    multiply = { "*" }
+    divide   = { "/" }
+
+expr = { term ~ (operation ~ term)* }
+term = _{ lit | "(" ~ expr ~ ")" }
+
+expr_lit = { term ~ (operation ~ term)* }
+term_lit = _{ (float | num) | "(" ~ expr_lit ~ ")" }
+
+WHITESPACE = _{ " " | "\t" }
