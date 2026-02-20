@@ -1,5 +1,7 @@
 //! Reginald Bank
 
+#[cfg(feature = "discord")]
+use anyhow::Context;
 use anyhow::Result;
 #[cfg(feature = "discord")]
 use reginald_conf::ReginaldConfig;
@@ -7,8 +9,6 @@ use reginald_conf::ReginaldConfig;
 use reginald_discord::{run_bot, DiscordHandle};
 #[cfg(feature = "discord")]
 use std::env;
-#[cfg(feature = "discord")]
-use anyhow::Context;
 
 #[cfg(feature = "discord")]
 const DISCORD_TOKEN_ENV: &str = "DISCORD_TOKEN";

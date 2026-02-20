@@ -76,9 +76,7 @@ pub fn rules_to_expr(mut pairs: Pairs<Rule>) -> Result<Expr> {
                 let _ = pairs.next();
 
                 match pairs.next().map(|p| p.as_rule()) {
-                    Some(rule) => {
-                        bin_op_ctx(rule, left, rules_to_expr(pairs)?)
-                    }
+                    Some(rule) => bin_op_ctx(rule, left, rules_to_expr(pairs)?),
                     None => Ok(left),
                 }
             }

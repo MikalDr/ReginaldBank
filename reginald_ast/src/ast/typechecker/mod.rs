@@ -30,7 +30,7 @@ pub fn typecheck(ast: ReginaldAST) -> Result<TypedAST> {
 fn typecheck_expr(expr: Expr) -> Result<TypedExpr> {
     match &expr {
         Expr::Val(val, denomination) => Ok(TypedExpr::Val(*val, *denomination)),
-        Expr::BinOp(op, l , r) => match op {
+        Expr::BinOp(op, l, r) => match op {
             BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div => {
                 let left_denomination = denomination_expr(l)?;
                 let right_denomination = denomination_expr(r)?;

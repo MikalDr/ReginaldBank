@@ -1,6 +1,4 @@
-use crate::ast::{
-    base::{BinOp, Expr, UniOp, money::Denomination},
-};
+use crate::ast::base::{BinOp, Expr, UniOp, money::Denomination};
 use anyhow::{Result, anyhow};
 
 pub mod base;
