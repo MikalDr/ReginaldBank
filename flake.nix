@@ -23,7 +23,7 @@
         let
           runtimeDeps = with pkgs; [ ];
           buildDeps = with pkgs; [ ];
-          devDeps = with pkgs; [ pest-ide-tools ];
+          devDeps = with pkgs; [ pest-ide-tools sqlite ];
 
           cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
           msrv = cargoToml.package.rust-version;

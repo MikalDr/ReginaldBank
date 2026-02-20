@@ -7,5 +7,5 @@ venv
 
 /target
 .idea
-reginald_db
+.reginald_db
 .direnv

@@ -14,8 +14,18 @@ pub struct ReginaldConfig {
 
 #[derive(Debug)]
 pub struct Player {
-    pub name: String,
-    pub class: String,
+    name: String,
+    class: String,
+}
+
+impl Player {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn class(&self) -> &str {
+        &self.class
+    }
 }
 
 impl ReginaldConfig {

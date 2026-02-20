@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["reginald_ast", "reginald_conf", "reginald_discord"]
+members = ["reginald_db","reginald_ast", "reginald_conf", "reginald_discord"]
 
 [dependencies]
 reginald_ast = { workspace = true, optional = true, features = ["repl"] }
 reginald_discord = { workspace = true, optional = true }
+reginald_db = { workspace = true, optional = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-reginald_conf = { workspace = true }
 
 [workspace.dependencies]
 anyhow = "1.0.100"
@@ -26,9 +26,11 @@ tokio = { version = "1.48.0" }
 reginald_ast = { path = "reginald_ast" }
 reginald_discord = { path = "reginald_discord" }
 reginald_conf = { path = "reginald_conf" }
+reginald_db = { path = "reginald_db" }
 sqlite = "0.37.0"
+uuid = "1.21.0"
 
 [features]
 default = ["discord"]
 repl = ["dep:reginald_ast"]
-discord = ["dep:reginald_ast", "dep:reginald_discord"]
+discord = ["dep:reginald_ast", "dep:reginald_discord", "dep:reginald_db"]
