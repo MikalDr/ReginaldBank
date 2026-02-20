@@ -3,17 +3,6 @@
 version = 4
 
 [[package]]
-name = "ReginaldBank"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "reginald_ast",
- "reginald_conf",
- "reginald_discord",
- "tokio",
-]
-
-[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1164,6 +1153,17 @@ dependencies = [
  "rstest",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "reginald_bank"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reginald_ast",
+ "reginald_conf",
+ "reginald_discord",
+ "tokio",
 ]
 
 [[package]]
