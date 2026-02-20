@@ -1,11 +1,11 @@
 use crate::{
     ReginaldParser, Rule,
     ast::{
-        base::env::ReginaldEnv,
+        base::{BinOp, env::ReginaldEnv},
         rules::rules_to_ast,
         typechecker::{
             typecheck,
-            typed_ast::{BinOp, TypedAST, TypedExpr, Value},
+            typed_ast::{TypedAST, TypedExpr, Value},
         },
     },
 };
@@ -57,7 +57,7 @@ fn eval_expr(expr: TypedExpr, env: &ReginaldEnv) -> Result<Value> {
                 let op: fn(f32, f32) -> f32 = match op {
                     BinOp::Add => |a, b| a + b,
                     BinOp::Sub => |a, b| a - b,
-                    BinOp::Mult | BinOp::Div => unreachable!(),
+                    BinOp::Mul | BinOp::Div => unreachable!(),
                 };
 
                 let left = eval_expr(*l, env)?;
@@ -94,7 +94,7 @@ fn eval_expr(expr: TypedExpr, env: &ReginaldEnv) -> Result<Value> {
                     (Value::Float(left), Value::Float(right)) => Ok(Value::Float(op(left, right))),
                 }
             }
-            BinOp::Mult => todo!(),
+            BinOp::Mul => todo!(),
             BinOp::Div => todo!(),
         },
         TypedExpr::Neg(expr) => {

@@ -7,7 +7,6 @@ use pest::Parser;
 
 const TEST_BASIC_CMDS: &str = include_str!("../../.././grammar/examples/basic-cmds");
 
-
 #[test]
 fn test_basic_commands() {
     for line in TEST_BASIC_CMDS.lines() {

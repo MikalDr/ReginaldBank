@@ -1,6 +1,6 @@
 use std::ops::Neg;
 
-use crate::ast::base::money::Denomination;
+use crate::ast::base::{BinOp, money::Denomination};
 
 #[derive(Debug)]
 pub enum TypedAST {
@@ -19,14 +19,6 @@ pub enum TypedExpr {
     Val(i64, Denomination),
     Lit(f32),
     Die(usize, usize),
-}
-
-#[derive(Debug)]
-pub enum BinOp {
-    Add,
-    Mult,
-    Sub,
-    Div,
 }
 
 #[derive(Debug)]

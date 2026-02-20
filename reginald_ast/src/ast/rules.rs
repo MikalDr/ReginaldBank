@@ -1,6 +1,6 @@
 use crate::{
     Rule,
-    ast::base::{Expr, ReginaldAST, money::Denomination},
+    ast::base::{BinOp, Expr, ReginaldAST, UniOp, money::Denomination},
 };
 use anyhow::{Result, anyhow};
 use pest::iterators::Pairs;
@@ -14,7 +14,10 @@ pub fn rules_to_ast(mut pairs: Pairs<Rule>) -> Result<ReginaldAST> {
                 let removes = &pairs.peek().is_some_and(|p| p.as_str().contains("take"));
                 let _ = pairs.next();
                 match pairs.next().map(|pair| pair.into_inner()) {
-                    Some(expr) if *removes => Ok(ReginaldAST::FundsChange(Expr::Neg(Box::new(rules_to_expr(expr)?)))),
+                    Some(expr) if *removes => Ok(ReginaldAST::FundsChange(Expr::UniOp(
+                        UniOp::Neg,
+                        Box::new(rules_to_expr(expr)?),
+                    ))),
                     Some(expr) => Ok(ReginaldAST::FundsChange(rules_to_expr(expr)?)),
                     None => Ok(ReginaldAST::Funds),
                 }
@@ -73,20 +76,10 @@ pub fn rules_to_expr(mut pairs: Pairs<Rule>) -> Result<Expr> {
                 let _ = pairs.next();
 
                 match pairs.next().map(|p| p.as_rule()) {
-                    Some(Rule::add) => {
-                        Ok(Expr::Add(Box::new(left), Box::new(rules_to_expr(pairs)?)))
-                    }
-                    Some(Rule::subtract) => {
-                        Ok(Expr::Sub(Box::new(left), Box::new(rules_to_expr(pairs)?)))
-                    }
-                    Some(Rule::multiply) => {
-                        Ok(Expr::Mul(Box::new(left), Box::new(rules_to_expr(pairs)?)))
-                    }
-                    Some(Rule::divide) => {
-                        Ok(Expr::Div(Box::new(left), Box::new(rules_to_expr(pairs)?)))
+                    Some(rule) => {
+                        bin_op_ctx(rule, left, rules_to_expr(pairs)?)
                     }
                     None => Ok(left),
-                    _ => panic!("Unhandled operator rule: {:?}", pairs),
                 }
             }
             Rule::expr => {
@@ -94,22 +87,9 @@ pub fn rules_to_expr(mut pairs: Pairs<Rule>) -> Result<Expr> {
                 let left = rules_to_expr(pairs.next().unwrap().into_inner())?;
                 match (pairs.next().map(|p| p.as_rule()), pairs.next()) {
                     (None, None) => Ok(left),
-                    (Some(Rule::add), Some(right)) => Ok(Expr::Add(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::subtract), Some(right)) => Ok(Expr::Sub(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::multiply), Some(right)) => Ok(Expr::Mul(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::divide), Some(right)) => Ok(Expr::Div(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
+                    (Some(rule), Some(right)) => {
+                        bin_op_ctx(rule, left, rules_to_expr(right.into_inner())?)
+                    }
                     _ => panic!("Unhandled operator rule: {:?}", pairs),
                 }
             }
@@ -121,27 +101,24 @@ pub fn rules_to_expr(mut pairs: Pairs<Rule>) -> Result<Expr> {
                 let left = rules_to_expr(pairs.next().unwrap().into_inner())?;
                 match (pairs.next().map(|p| p.as_rule()), pairs.next()) {
                     (None, None) => Ok(left),
-                    (Some(Rule::add), Some(right)) => Ok(Expr::Add(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::subtract), Some(right)) => Ok(Expr::Sub(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::multiply), Some(right)) => Ok(Expr::Mul(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
-                    (Some(Rule::divide), Some(right)) => Ok(Expr::Div(
-                        Box::new(left),
-                        Box::new(rules_to_expr(right.into_inner())?),
-                    )),
+                    (Some(rule), Some(right)) => {
+                        bin_op_ctx(rule, left, rules_to_expr(right.into_inner())?)
+                    }
                     _ => panic!("Unhandled operator rule: {:?}", pairs),
                 }
             }
             #[allow(unreachable_patterns)]
             _ => panic!("Unhandled expr rule: {:?}", pairs),
         },
+    }
+}
+
+fn bin_op_ctx(rule: Rule, left: Expr, right: Expr) -> Result<Expr> {
+    match rule {
+        Rule::add => Ok(Expr::BinOp(BinOp::Add, Box::new(left), Box::new(right))),
+        Rule::subtract => Ok(Expr::BinOp(BinOp::Sub, Box::new(left), Box::new(right))),
+        Rule::multiply => Ok(Expr::BinOp(BinOp::Mul, Box::new(left), Box::new(right))),
+        Rule::divide => Ok(Expr::BinOp(BinOp::Div, Box::new(left), Box::new(right))),
+        _ => panic!("Unhandled operator rule: {:?}", rule),
     }
 }

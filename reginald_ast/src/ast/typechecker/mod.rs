@@ -1,6 +1,6 @@
 use crate::ast::{
-    base::{Expr, ReginaldAST},
-    denomination_expr, get_binop,
+    base::{BinOp, Expr, ReginaldAST, UniOp},
+    denomination_expr,
     typechecker::typed_ast::{TypedAST, TypedExpr},
 };
 use anyhow::Result;
@@ -29,19 +29,23 @@ pub fn typecheck(ast: ReginaldAST) -> Result<TypedAST> {
 
 fn typecheck_expr(expr: Expr) -> Result<TypedExpr> {
     match &expr {
-        Expr::Neg(expr) => Ok(TypedExpr::Neg(Box::new(typecheck_expr(*expr.clone())?))),
         Expr::Val(val, denomination) => Ok(TypedExpr::Val(*val, *denomination)),
-        Expr::Add(l, r) | Expr::Sub(l, r) | Expr::Mul(l, r) | Expr::Div(l, r) => {
-            let binop = get_binop(&expr)?;
-            let left_denomination = denomination_expr(l.as_ref())?;
-            let right_denomination = denomination_expr(r.as_ref())?;
-            Ok(TypedExpr::BinOp(
-                binop,
-                Box::new(typecheck_expr(*l.clone())?),
-                Box::new(typecheck_expr(*r.clone())?),
-                left_denomination.min(right_denomination),
-            ))
-        }
+        Expr::BinOp(op, l , r) => match op {
+            BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div => {
+                let left_denomination = denomination_expr(l)?;
+                let right_denomination = denomination_expr(r)?;
+                Ok(TypedExpr::BinOp(
+                    op.clone(),
+                    Box::new(typecheck_expr(*l.clone())?),
+                    Box::new(typecheck_expr(*r.clone())?),
+                    left_denomination.min(right_denomination),
+                ))
+            }
+        },
+        Expr::UniOp(op, expr) => match op {
+            UniOp::Neg => Ok(TypedExpr::Neg(Box::new(typecheck_expr(*expr.clone())?))),
+            UniOp::Abs => todo!(),
+        },
         Expr::Lit(val) => Ok(TypedExpr::Lit(*val)),
         Expr::Die(_, _) => todo!(),
     }

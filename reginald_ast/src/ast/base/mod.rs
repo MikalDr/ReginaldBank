@@ -15,12 +15,23 @@ pub enum ReginaldAST {
 
 #[derive(Debug, Clone)]
 pub enum Expr {
-    Add(Box<Expr>, Box<Expr>),
-    Sub(Box<Expr>, Box<Expr>),
-    Mul(Box<Expr>, Box<Expr>),
-    Div(Box<Expr>, Box<Expr>),
-    Neg(Box<Expr>),
+    BinOp(BinOp, Box<Self>, Box<Self>),
+    UniOp(UniOp, Box<Self>),
     Val(i64, Denomination),
     Lit(f32),
     Die(usize, usize),
+}
+
+#[derive(Debug, Clone)]
+pub enum BinOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
+
+#[derive(Debug, Clone)]
+pub enum UniOp {
+    Neg,
+    Abs,
 }
